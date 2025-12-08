@@ -1,0 +1,29 @@
+<script>
+  import FileUploader from '$lib/components/FileUploader.svelte';
+  import ImagePreview from '$lib/components/ImagePreview.svelte';
+  import CanvasPlayer from '$lib/components/CanvasPlayer.svelte';
+</script>
+
+<div class="container">
+  <h1>Phenakistoscope Lab</h1>
+  <p class="sub">Convert old phenakistoscope discs into animated GIFs</p>
+
+  <FileUploader />
+  <ImagePreview />
+  <CanvasPlayer />
+</div>
+
+<style>
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  h1 {
+    margin-top: 10px;
+  }
+  .sub {
+    opacity: 0.6;
+    margin-bottom: 20px;
+  }
+</style>

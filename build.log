@@ -1,0 +1,48 @@
+
+> phenaki-lab@0.0.1 build /home/tclaret/projects/phenaki-lab
+> vite build && npm run prepack
+
+vite v7.2.6 building ssr environment for production...
+transforming...
+5:45:42 PM [vite-plugin-svelte] .svelte-kit/generated/root.svelte:11:27 This reference only captures the initial value of `stores`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+ 9: 
+10:   if (!browser) {
+11:     setContext('__svelte__', stores);
+                                       ^
+12:   }
+13: 
+5:45:42 PM [vite-plugin-svelte] .svelte-kit/generated/root.svelte:17:2 This reference only captures the initial value of `stores`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:     $effect.pre(() => stores.page.set(page));
+16:   } else {
+17:     stores.page.set(page);
+              ^
+18:   }
+19:   $effect(() => {
+5:45:42 PM [vite-plugin-svelte] .svelte-kit/generated/root.svelte:17:18 This reference only captures the initial value of `page`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+15:     $effect.pre(() => stores.page.set(page));
+16:   } else {
+17:     stores.page.set(page);
+                            ^
+18:   }
+19:   $effect(() => {
+✓ 131 modules transformed.
+✗ Build failed in 745ms
+error during build:
+[vite-plugin-svelte:compile] [plugin vite-plugin-svelte:compile] src/lib/components/AnalyzerPanel.svelte (417:12): /home/tclaret/projects/phenaki-lab/src/lib/components/AnalyzerPanel.svelte:417:12 Expected token }
+https://svelte.dev/e/expected_token
+
+- Did you forget to add a lang attribute to your style tag?
+file: /home/tclaret/projects/phenaki-lab/src/lib/components/AnalyzerPanel.svelte:417:12
+
+ 415 |  </style>
+ 416 |    .export-overlay {
+ 417 |      position: fixed;
+                    ^
+ 418 |      inset: 0;
+ 419 |      display: flex;
+
+
+ ELIFECYCLE  Command failed with exit code 1.

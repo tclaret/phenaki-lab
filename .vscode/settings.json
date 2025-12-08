@@ -1,0 +1,24 @@
+{
+  // Extensions
+  "svelte.plugin.typescript.enable": true,
+  "svelte.plugin.svelte-ls.enable": true,
+  
+  // Formatage avec Prettier
+  "editor.formatOnSave": true,
+  "prettier.enable": true,
+  "prettier.svelteSortOrder": "scripts-markup-styles",
+  "prettier.svelteStrictMode": true,
+  "prettier.svelteAllowShorthand": true,
+  
+  // Linting
+  "eslint.validate": ["svelte", "javascript", "typescript"],
+  
+  // Taille tabulations / espace
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  
+  // Recommander l’interpréteur de JS/TS du projet
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "chat.editor.fontSize": 18
+}
+

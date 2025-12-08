@@ -1,0 +1,158 @@
+{
+  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2": {
+    "file": "_app/immutable/assets/fa-brands-400.BfBXV7Mm.woff2",
+    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2"
+  },
+  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2": {
+    "file": "_app/immutable/assets/fa-regular-400.BVHPE7da.woff2",
+    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2"
+  },
+  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2": {
+    "file": "_app/immutable/assets/fa-solid-900.8GirhLYJ.woff2",
+    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2"
+  },
+  ".svelte-kit/generated/client-optimized/app.js": {
+    "file": "_app/immutable/entry/app.VdHYnt5L.js",
+    "name": "entry/app",
+    "src": ".svelte-kit/generated/client-optimized/app.js",
+    "isEntry": true,
+    "imports": [
+      "_zw_chER5.js",
+      "_CfBDm7bY.js",
+      "_BPwTt6vP.js",
+      "_BQFw1Q7y.js",
+      "_BuQu0Dv8.js"
+    ],
+    "dynamicImports": [
+      ".svelte-kit/generated/client-optimized/nodes/0.js",
+      ".svelte-kit/generated/client-optimized/nodes/1.js",
+      ".svelte-kit/generated/client-optimized/nodes/2.js"
+    ]
+  },
+  ".svelte-kit/generated/client-optimized/nodes/0.js": {
+    "file": "_app/immutable/nodes/0.DfBis0P9.js",
+    "name": "nodes/0",
+    "src": ".svelte-kit/generated/client-optimized/nodes/0.js",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_BPwTt6vP.js",
+      "_D4mQYNIE.js",
+      "_zw_chER5.js"
+    ],
+    "css": [
+      "_app/immutable/assets/0.BFQQW86H.css"
+    ],
+    "assets": [
+      "_app/immutable/assets/fa-brands-400.BfBXV7Mm.woff2",
+      "_app/immutable/assets/fa-regular-400.BVHPE7da.woff2",
+      "_app/immutable/assets/fa-solid-900.8GirhLYJ.woff2"
+    ]
+  },
+  ".svelte-kit/generated/client-optimized/nodes/1.js": {
+    "file": "_app/immutable/nodes/1.BSfYKkZV.js",
+    "name": "nodes/1",
+    "src": ".svelte-kit/generated/client-optimized/nodes/1.js",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_BPwTt6vP.js",
+      "_D4mQYNIE.js",
+      "_zw_chER5.js",
+      "_CfBDm7bY.js",
+      "_CtND9pXO.js",
+      "_D8a4VFuf.js"
+    ]
+  },
+  ".svelte-kit/generated/client-optimized/nodes/2.js": {
+    "file": "_app/immutable/nodes/2.Bw4gwCAU.js",
+    "name": "nodes/2",
+    "src": ".svelte-kit/generated/client-optimized/nodes/2.js",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_BPwTt6vP.js",
+      "_D4mQYNIE.js",
+      "_zw_chER5.js",
+      "_CfBDm7bY.js",
+      "_CtND9pXO.js",
+      "_BQFw1Q7y.js",
+      "_BuQu0Dv8.js"
+    ],
+    "css": [
+      "_app/immutable/assets/2.DEgjyFTD.css"
+    ],
+    "assets": [
+      "_app/immutable/assets/gif.worker.CjkyQP34.js"
+    ]
+  },
+  "_BPwTt6vP.js": {
+    "file": "_app/immutable/chunks/BPwTt6vP.js",
+    "name": "disclose-version",
+    "imports": [
+      "_zw_chER5.js"
+    ]
+  },
+  "_BQFw1Q7y.js": {
+    "file": "_app/immutable/chunks/BQFw1Q7y.js",
+    "name": "index-client",
+    "imports": [
+      "_zw_chER5.js"
+    ]
+  },
+  "_BuQu0Dv8.js": {
+    "file": "_app/immutable/chunks/BuQu0Dv8.js",
+    "name": "store",
+    "imports": [
+      "_zw_chER5.js",
+      "_BQFw1Q7y.js"
+    ]
+  },
+  "_CfBDm7bY.js": {
+    "file": "_app/immutable/chunks/CfBDm7bY.js",
+    "name": "render",
+    "imports": [
+      "_zw_chER5.js",
+      "_BPwTt6vP.js"
+    ]
+  },
+  "_CtND9pXO.js": {
+    "file": "_app/immutable/chunks/CtND9pXO.js",
+    "name": "lifecycle",
+    "imports": [
+      "_zw_chER5.js"
+    ]
+  },
+  "_D4mQYNIE.js": {
+    "file": "_app/immutable/chunks/D4mQYNIE.js",
+    "name": "legacy",
+    "imports": [
+      "_zw_chER5.js"
+    ]
+  },
+  "_D8a4VFuf.js": {
+    "file": "_app/immutable/chunks/D8a4VFuf.js",
+    "name": "entry",
+    "imports": [
+      "_zw_chER5.js",
+      "_BQFw1Q7y.js"
+    ]
+  },
+  "_zw_chER5.js": {
+    "file": "_app/immutable/chunks/zw_chER5.js",
+    "name": "runtime"
+  },
+  "node_modules/.pnpm/@sveltejs+kit@2.49.0_@sveltejs+vite-plugin-svelte@6.2.1_svelte@5.45.3_vite@7.2.6_@types_987d62a8f647b67ba8446252aff93ab8/node_modules/@sveltejs/kit/src/runtime/client/entry.js": {
+    "file": "_app/immutable/entry/start.CA5M6LUI.js",
+    "name": "entry/start",
+    "src": "node_modules/.pnpm/@sveltejs+kit@2.49.0_@sveltejs+vite-plugin-svelte@6.2.1_svelte@5.45.3_vite@7.2.6_@types_987d62a8f647b67ba8446252aff93ab8/node_modules/@sveltejs/kit/src/runtime/client/entry.js",
+    "isEntry": true,
+    "imports": [
+      "_D8a4VFuf.js"
+    ]
+  },
+  "node_modules/.pnpm/gif.js@0.2.0/node_modules/gif.js/dist/gif.worker.js": {
+    "file": "_app/immutable/assets/gif.worker.CjkyQP34.js",
+    "src": "node_modules/.pnpm/gif.js@0.2.0/node_modules/gif.js/dist/gif.worker.js"
+  }
+}
