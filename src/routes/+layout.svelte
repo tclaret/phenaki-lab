@@ -1,5 +1,5 @@
 <script>
-  import "@fortawesome/fontawesome-free/css/all.min.css";
+  // FontAwesome loaded via CDN in app.html
 </script>
 
 <div class="app">
