@@ -1,18 +1,6 @@
 {
-  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2": {
-    "file": "_app/immutable/assets/fa-brands-400.BfBXV7Mm.woff2",
-    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2"
-  },
-  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2": {
-    "file": "_app/immutable/assets/fa-regular-400.BVHPE7da.woff2",
-    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2"
-  },
-  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2": {
-    "file": "_app/immutable/assets/fa-solid-900.8GirhLYJ.woff2",
-    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2"
-  },
   ".svelte-kit/generated/client-optimized/app.js": {
-    "file": "_app/immutable/entry/app.BDh5sNED.js",
+    "file": "_app/immutable/entry/app.BcKrdext.js",
     "name": "entry/app",
     "src": ".svelte-kit/generated/client-optimized/app.js",
     "isEntry": true,
@@ -30,7 +18,7 @@
     ]
   },
   ".svelte-kit/generated/client-optimized/nodes/0.js": {
-    "file": "_app/immutable/nodes/0.DfBis0P9.js",
+    "file": "_app/immutable/nodes/0.D8ticmnS.js",
     "name": "nodes/0",
     "src": ".svelte-kit/generated/client-optimized/nodes/0.js",
     "isEntry": true,
@@ -41,16 +29,11 @@
       "_zw_chER5.js"
     ],
     "css": [
-      "_app/immutable/assets/0.BFQQW86H.css"
-    ],
-    "assets": [
-      "_app/immutable/assets/fa-brands-400.BfBXV7Mm.woff2",
-      "_app/immutable/assets/fa-regular-400.BVHPE7da.woff2",
-      "_app/immutable/assets/fa-solid-900.8GirhLYJ.woff2"
+      "_app/immutable/assets/0.CV0BMypH.css"
     ]
   },
   ".svelte-kit/generated/client-optimized/nodes/1.js": {
-    "file": "_app/immutable/nodes/1.DZ_aZax3.js",
+    "file": "_app/immutable/nodes/1.CuGkZmJb.js",
     "name": "nodes/1",
     "src": ".svelte-kit/generated/client-optimized/nodes/1.js",
     "isEntry": true,
@@ -61,7 +44,7 @@
       "_zw_chER5.js",
       "_CfBDm7bY.js",
       "_CtND9pXO.js",
-      "_BuM9_pAX.js"
+      "_BQY6wlj0.js"
     ]
   },
   ".svelte-kit/generated/client-optimized/nodes/2.js": {
@@ -100,8 +83,8 @@
       "_zw_chER5.js"
     ]
   },
-  "_BuM9_pAX.js": {
-    "file": "_app/immutable/chunks/BuM9_pAX.js",
+  "_BQY6wlj0.js": {
+    "file": "_app/immutable/chunks/BQY6wlj0.js",
     "name": "entry",
     "imports": [
       "_zw_chER5.js",
@@ -143,12 +126,12 @@
     "name": "runtime"
   },
   "node_modules/.pnpm/@sveltejs+kit@2.49.0_@sveltejs+vite-plugin-svelte@6.2.1_svelte@5.45.3_vite@7.2.6_@types_987d62a8f647b67ba8446252aff93ab8/node_modules/@sveltejs/kit/src/runtime/client/entry.js": {
-    "file": "_app/immutable/entry/start.CLb_U_Gx.js",
+    "file": "_app/immutable/entry/start.NHHaVVAh.js",
     "name": "entry/start",
     "src": "node_modules/.pnpm/@sveltejs+kit@2.49.0_@sveltejs+vite-plugin-svelte@6.2.1_svelte@5.45.3_vite@7.2.6_@types_987d62a8f647b67ba8446252aff93ab8/node_modules/@sveltejs/kit/src/runtime/client/entry.js",
     "isEntry": true,
     "imports": [
-      "_BuM9_pAX.js"
+      "_BQY6wlj0.js"
     ]
   },
   "node_modules/.pnpm/gif.js@0.2.0/node_modules/gif.js/dist/gif.worker.js": {

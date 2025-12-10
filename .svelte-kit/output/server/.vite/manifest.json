@@ -1,16 +1,4 @@
 {
-  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2": {
-    "file": "_app/immutable/assets/fa-brands-400.BfBXV7Mm.woff2",
-    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2"
-  },
-  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2": {
-    "file": "_app/immutable/assets/fa-regular-400.BVHPE7da.woff2",
-    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2"
-  },
-  "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2": {
-    "file": "_app/immutable/assets/fa-solid-900.8GirhLYJ.woff2",
-    "src": "../../node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2"
-  },
   ".svelte-kit/generated/server/internal.js": {
     "file": "internal.js",
     "name": "internal",
@@ -114,6 +102,12 @@
     "file": "_app/immutable/assets/gif.worker.CjkyQP34.js",
     "src": "node_modules/.pnpm/gif.js@0.2.0/node_modules/gif.js/dist/gif.worker.js"
   },
+  "src/routes/+layout.js": {
+    "file": "entries/pages/_layout.js",
+    "name": "entries/pages/_layout",
+    "src": "src/routes/+layout.js",
+    "isEntry": true
+  },
   "src/routes/+layout.svelte": {
     "file": "entries/pages/_layout.svelte.js",
     "name": "entries/pages/_layout.svelte",
@@ -123,12 +117,7 @@
       "_index2.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.p3TWrGKE.css"
-    ],
-    "assets": [
-      "_app/immutable/assets/fa-brands-400.BfBXV7Mm.woff2",
-      "_app/immutable/assets/fa-regular-400.BVHPE7da.woff2",
-      "_app/immutable/assets/fa-solid-900.8GirhLYJ.woff2"
+      "_app/immutable/assets/_layout.CV0BMypH.css"
     ]
   },
   "src/routes/+page.svelte": {
