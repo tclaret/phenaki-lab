@@ -10,6 +10,8 @@
     overlayVisible,
     playerCanvas,
     detectionAnimation,
+    flickerEnabled,
+    flickerFrequency,
   } from "$lib/store";
 
   let wrapper;
@@ -406,56 +408,108 @@
     }
 
     // Draw detection radar animation if active
-    if ($detectionAnimation.active && $detectedCircle) {
+    if ($detectionAnimation.active) {
       try {
-        const c = $detectedCircle;
-        const scaleImg = (dw * scale) / htmlImg.width;
-        const cx = (c.x - htmlImg.width / 2) * scaleImg;
-        const cy = (c.y - htmlImg.height / 2) * scaleImg;
-        const cr = c.r * scaleImg;
         const progress = Math.min(1, (Date.now() - $detectionAnimation.startTime) / 2000);
 
         // Semi-transparent overlay
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.fillRect(-dw / 2 - 100, -dh / 2 - 100, dw + 200, dh + 200);
 
-        // Scanning radar rings expanding outward
-        ctx.strokeStyle = `rgba(100, 200, 255, ${0.8 * (1 - progress)})`;
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 3; i++) {
-          const ringRadius = cr * (0.3 + progress * 1.2 + i * 0.3);
+        // If circle is detected, show targeted animation
+        if ($detectedCircle) {
+          const c = $detectedCircle;
+          const scaleImg = (dw * scale) / htmlImg.width;
+          const cx = (c.x - htmlImg.width / 2) * scaleImg;
+          const cy = (c.y - htmlImg.height / 2) * scaleImg;
+          const cr = c.r * scaleImg;
+
+          // Scanning radar rings expanding outward
+          ctx.strokeStyle = `rgba(100, 200, 255, ${0.8 * (1 - progress)})`;
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 3; i++) {
+            const ringRadius = cr * (0.3 + progress * 1.2 + i * 0.3);
+            ctx.beginPath();
+            ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // Rotating scan line
+          ctx.strokeStyle = `rgba(100, 200, 255, 0.9)`;
+          ctx.lineWidth = 3;
+          const scanAngle = progress * Math.PI * 6; // 3 full rotations
+          const scanRadius = cr * 1.8;
           ctx.beginPath();
-          ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(
+            cx + Math.cos(scanAngle) * scanRadius,
+            cy + Math.sin(scanAngle) * scanRadius
+          );
           ctx.stroke();
+
+          // Pulsing center point
+          const pulseSize = 4 + Math.sin(progress * Math.PI * 4) * 2;
+          ctx.fillStyle = `rgba(100, 200, 255, ${0.9 * Math.sin(progress * Math.PI)})`;
+          ctx.beginPath();
+          ctx.arc(cx, cy, pulseSize, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Scan text
+          ctx.fillStyle = `rgba(100, 200, 255, ${Math.sin(progress * Math.PI)})`;
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('SCANNING...', cx, cy - cr - 20);
+        } else {
+          // No circle yet, show generic scanning animation
+          const maxRadius = Math.max(dw, dh) / 2;
+          
+          // Expanding rings from center
+          ctx.strokeStyle = `rgba(100, 200, 255, ${0.6})`;
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 4; i++) {
+            const ringRadius = maxRadius * (progress + i * 0.25) % 1;
+            const opacity = 1 - ringRadius;
+            ctx.strokeStyle = `rgba(100, 200, 255, ${opacity * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(0, 0, ringRadius * maxRadius, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // Rotating scan line
+          ctx.strokeStyle = `rgba(100, 200, 255, 0.8)`;
+          ctx.lineWidth = 3;
+          const scanAngle = progress * Math.PI * 4;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(
+            Math.cos(scanAngle) * maxRadius,
+            Math.sin(scanAngle) * maxRadius
+          );
+          ctx.stroke();
+
+          // Center text
+          ctx.fillStyle = `rgba(100, 200, 255, ${0.8 + 0.2 * Math.sin(progress * Math.PI * 4)})`;
+          ctx.font = 'bold 16px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('ANALYZING IMAGE...', 0, -20);
+          
+          // Progress indicator
+          ctx.font = '12px sans-serif';
+          ctx.fillText(`${Math.round(progress * 100)}%`, 0, 10);
         }
-
-        // Rotating scan line
-        ctx.strokeStyle = `rgba(100, 200, 255, 0.9)`;
-        ctx.lineWidth = 3;
-        const scanAngle = progress * Math.PI * 6; // 3 full rotations
-        const scanRadius = cr * 1.8;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(
-          cx + Math.cos(scanAngle) * scanRadius,
-          cy + Math.sin(scanAngle) * scanRadius
-        );
-        ctx.stroke();
-
-        // Pulsing center point
-        const pulseSize = 4 + Math.sin(progress * Math.PI * 4) * 2;
-        ctx.fillStyle = `rgba(100, 200, 255, ${0.9 * Math.sin(progress * Math.PI)})`;
-        ctx.beginPath();
-        ctx.arc(cx, cy, pulseSize, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Scan text
-        ctx.fillStyle = `rgba(100, 200, 255, ${Math.sin(progress * Math.PI)})`;
-        ctx.font = 'bold 14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('SCANNING...', cx, cy - cr - 20);
       } catch (e) {
         console.warn('radar animation failed', e);
+      }
+    }
+
+    // Flicker effect (simulates persistence of vision threshold)
+    if ($flickerEnabled && $isPlaying) {
+      const flickerPeriod = 1000 / $flickerFrequency; // ms per cycle
+      const phase = (lastTime % flickerPeriod) / flickerPeriod; // 0 to 1
+      // Create a sharp on/off flicker (square wave)
+      if (phase > 0.5) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(-cw, -ch, cw * 3, ch * 3);
       }
     }
 

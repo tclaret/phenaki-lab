@@ -14,3 +14,11 @@ export const detectionAnimation: import("svelte/store").Writable<{
     startTime: number;
 }>;
 export const playerCanvas: import("svelte/store").Writable<null>;
+export const params: import("svelte/store").Writable<{
+    sectors: number;
+    duration: number;
+    easing: string;
+    loop: boolean;
+}>;
+export const flickerEnabled: import("svelte/store").Writable<boolean>;
+export const flickerFrequency: import("svelte/store").Writable<number>;

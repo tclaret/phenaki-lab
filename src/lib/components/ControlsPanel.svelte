@@ -1,5 +1,5 @@
 <script>
-  import { params } from '$lib/store';
+  import { params, flickerEnabled, flickerFrequency } from '$lib/store';
 
   function update(key, value) {
     params.update(p => ({ ...p, [key]: value }));
@@ -36,5 +36,25 @@
       on:change={(e)=>update("loop", e.target.checked)} />
     Loop
   </label>
+
+  <hr style="margin: 20px 0; border: 1px solid #333;" />
+
+  <h3 style="margin-top: 20px; font-size: 1.1em;">Flicker Effect</h3>
+  <p style="font-size: 0.85em; color: #aaa; margin: 5px 0 10px;">
+    Simulates the <a href="https://en.wikipedia.org/wiki/Flicker_fusion_threshold" target="_blank" style="color: #4af">flicker fusion threshold</a> effect
+  </p>
+
+  <label>
+    <input type="checkbox" bind:checked={$flickerEnabled} />
+    Enable Flicker
+  </label>
+
+  {#if $flickerEnabled}
+    <label>
+      Frequency: {$flickerFrequency} Hz
+      <input type="range" min="1" max="60" value={$flickerFrequency}
+        on:input={(e)=>flickerFrequency.set(+e.target.value)} />
+    </label>
+  {/if}
 </div>
 

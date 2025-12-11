@@ -44,13 +44,19 @@
     if (!url) return;
     busy = true;
     
-    // Start animation
+    // Start animation immediately
     const animStartTime = Date.now();
     detectionAnimation.set({
       active: true,
       progress: 0,
       startTime: animStartTime,
     });
+    
+    // Force canvas to start rendering the animation immediately
+    if (!$isPlaying) {
+      // Trigger a single frame render to show the animation start
+      requestAnimationFrame(() => {});
+    }
     
     try {
       const img = await loadImage(url);
@@ -287,7 +293,7 @@
     </div>
   {/if}
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <button on:click={togglePlay}>{ $isPlaying ? 'Pause' : 'Play' }</button>
+    <button class="{_detectedCircle && !$isPlaying ? 'play-highlight' : ''}" on:click={togglePlay}>{ $isPlaying ? 'Pause' : 'Play' }</button>
     <button on:click={reverseDir}>Reverse</button>
     <button class={!_detectedCircle ? 'detect-btn-required' : ''} on:click={runDetection} disabled={busy || !$imageUrl}>Detect Circle & Count</button>
     <button on:click={applySuggestedSpeed} disabled={!_suggested}>Apply Suggested Speed</button>
@@ -446,6 +452,19 @@ button:disabled {
   50% {
     box-shadow: 0 0 0 6px rgba(204, 0, 0, 0.3);
   }
+}
+
+.play-highlight {
+  background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%) !important;
+  border: 2px solid #ff6666 !important;
+  animation: glow 2s infinite;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.8); }
 }
 
 /* Les styles pour l'export (qui étaient dans la deuxième balise) ont été fusionnés ici. */

@@ -30,3 +30,15 @@ export const detectionAnimation = writable({
 
 // reference to the playing canvas element so other panels can export frames
 export const playerCanvas = writable(null);
+
+// Params for GIF generation / export
+export const params = writable({
+  sectors: 12,
+  duration: 2,
+  easing: "linear",
+  loop: true,
+});
+
+// Flicker effect (https://en.wikipedia.org/wiki/Flicker_fusion_threshold)
+export const flickerEnabled = writable(false);
+export const flickerFrequency = writable(10); // Hz (flashes per second)
