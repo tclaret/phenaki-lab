@@ -78,8 +78,10 @@ function CanvasPlayer($$renderer, $$props) {
       if (!lastTime) lastTime = ts;
       const dt = ts - lastTime;
       lastTime = ts;
-      const degPerSec = store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0;
-      angle += degPerSec * (store_get($$store_subs ??= {}, "$rotationDirection", rotationDirection) || 1) * (dt / 1e3);
+      if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying)) {
+        const degPerSec = store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0;
+        angle += degPerSec * (store_get($$store_subs ??= {}, "$rotationDirection", rotationDirection) || 1) * (dt / 1e3);
+      }
       raf = requestAnimationFrame(loop);
     }
     if (store_get($$store_subs ??= {}, "$imageUrl", imageUrl)) {
@@ -183,7 +185,29 @@ function SampleImageSelector($$renderer, $$props) {
       {
         name: "Fantascope Disc 1833",
         file: "fantascope-disc-1833.png"
-      }
+      },
+      { name: "Face", file: "_face__.jpg" },
+      { name: "Culbute", file: "culbute.jpg" },
+      { name: "Grenouille", file: "Grenouille__.jpg" },
+      { name: "Oh Soccer", file: "oh_soccer.jpg" },
+      { name: "Un Grand Un Petit", file: "un_grand_un_petit.jpg" },
+      { name: "Autre Culbutte", file: "autre_culbutte.jpg" },
+      { name: "Dancing", file: "dancing_.jpg" },
+      { name: "Il Pompe de l'eau", file: "il_pompe_de_leau.jpg" },
+      { name: "Porceline", file: "porceline.jpg" },
+      { name: "Volants", file: "volants_.png" },
+      { name: "Ce Qui", file: "ce_qui.jpg" },
+      { name: "Des Anges", file: "des_anges.jpg" },
+      { name: "Moulin", file: "moulin_.jpg" },
+      { name: "Rats", file: "rats__.jpg" },
+      { name: "Corde à Danser", file: "corde_a_denser_.jpg" },
+      { name: "Ecureuil", file: "ecureuil.jpg" },
+      { name: "Noel Noel", file: "noel_noel.jpg" },
+      { name: "Tirreur", file: "tirreur_.jpg" },
+      { name: "C Pastel", file: "c_pastel.jpg" },
+      { name: "Géométrique", file: "geometrique.jpg" },
+      { name: "Nuages en Scie", file: "nuages_en_scie.jpg" },
+      { name: "Tons Pastels", file: "tons_pastels.jpg" }
     ];
     $$renderer2.push(`<div class="selector svelte-ai08gq"><label for="samples" class="svelte-ai08gq">Sample Images:</label> <select id="samples" class="svelte-ai08gq">`);
     $$renderer2.option({ value: "" }, ($$renderer3) => {
