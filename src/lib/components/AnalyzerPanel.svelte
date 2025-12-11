@@ -44,25 +44,16 @@
 		const url = $imageUrl;
 		if (!url) return;
 
-		// Enter edit mode instead of running detection immediately
+		// Enter edit mode with continuous radar animation
 		editMode.set(true);
 
-		// Show brief animation
+		// Start continuous animation for edit mode
 		const animStartTime = Date.now();
 		detectionAnimation.set({
 			active: true,
 			progress: 0,
 			startTime: animStartTime
 		});
-
-		// Stop animation after 500ms and keep edit mode
-		setTimeout(() => {
-			detectionAnimation.set({
-				active: false,
-				progress: 0,
-				startTime: 0
-			});
-		}, 500);
 	}
 
 	async function confirmDetection() {
@@ -71,7 +62,7 @@
 		busy = true;
 		editMode.set(false);
 
-		// Start animation immediately
+		// Keep animation running for actual detection
 		const animStartTime = Date.now();
 		detectionAnimation.set({
 			active: true,
@@ -143,6 +134,15 @@
 		suggestedRotationSpeed.subscribe((s) => {
 			if (s) rotationSpeed.set(s);
 		})();
+	}
+
+	function cancelEditMode() {
+		editMode.set(false);
+		detectionAnimation.set({
+			active: false,
+			progress: 0,
+			startTime: 0
+		});
 	}
 
 	// allow user to type a manual speed (degrees/sec)
@@ -340,19 +340,17 @@
 				<div class="export-text">Working… Exporting GIF — please wait</div>
 			</div>
 		</div>
-	</div>
+	{/if}
 	<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
 		<button class={_detectedCircle && !$isPlaying ? 'play-highlight' : ''} on:click={togglePlay}
 			>{$isPlaying ? 'Pause' : 'Play'}</button
 		>
 		<button on:click={reverseDir}>Reverse</button>
 		{#if $editMode}
-			<button
-				class="confirm-btn"
-				on:click={confirmDetection}
-				disabled={busy}>Confirm Detection</button
+			<button class="confirm-btn" on:click={confirmDetection} disabled={busy}
+				>Confirm Detection</button
 			>
-			<button on:click={() => editMode.set(false)}>Cancel</button>
+			<button on:click={cancelEditMode}>Cancel</button>
 		{:else}
 			<button
 				class={!_detectedCircle ? 'detect-btn-required' : ''}
