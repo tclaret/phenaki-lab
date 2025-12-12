@@ -11,7 +11,8 @@
 		playerCanvas,
 		detectionAnimation,
 		flickerEnabled,
-		flickerFrequency
+		flickerFrequency,
+		editMode
 	} from '../store';
 
 	let wrapper;
@@ -414,7 +415,16 @@
 		// Draw detection radar animation if active
 		if ($detectionAnimation.active) {
 			try {
-				const progress = Math.min(1, (Date.now() - $detectionAnimation.startTime) / 2000);
+				// In edit mode, loop the animation continuously
+				let progress;
+				if ($editMode) {
+					// Continuous loop animation
+					const elapsed = Date.now() - $detectionAnimation.startTime;
+					progress = (elapsed % 2000) / 2000; // Loop every 2 seconds
+				} else {
+					// Normal one-time animation
+					progress = Math.min(1, (Date.now() - $detectionAnimation.startTime) / 2000);
+				}
 
 				// Semi-transparent overlay
 				ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
@@ -489,11 +499,17 @@
 					ctx.fillStyle = `rgba(100, 200, 255, ${0.8 + 0.2 * Math.sin(progress * Math.PI * 4)})`;
 					ctx.font = 'bold 16px sans-serif';
 					ctx.textAlign = 'center';
-					ctx.fillText('ANALYZING IMAGE...', 0, -20);
 
-					// Progress indicator
-					ctx.font = '12px sans-serif';
-					ctx.fillText(`${Math.round(progress * 100)}%`, 0, 10);
+					if ($editMode) {
+						ctx.fillText('POSITION THE CENTER & ADJUST ZOOM', 0, -30);
+						ctx.font = '14px sans-serif';
+						ctx.fillText('Align the crosshair with rotation center', 0, 0);
+					} else {
+						ctx.fillText('ANALYZING IMAGE...', 0, -20);
+						// Progress indicator
+						ctx.font = '12px sans-serif';
+						ctx.fillText(`${Math.round(progress * 100)}%`, 0, 10);
+					}
 				}
 			} catch (e) {
 				console.warn('radar animation failed', e);
@@ -509,6 +525,36 @@
 				ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
 				ctx.fillRect(-cw, -ch, cw * 3, ch * 3);
 			}
+		}
+
+		// Edit mode: display center crosshair
+		if ($editMode) {
+			ctx.strokeStyle = 'rgba(255, 100, 0, 0.9)';
+			ctx.lineWidth = 3;
+			const crossSize = Math.min(cw, ch) * 0.08;
+
+			// Horizontal line
+			ctx.beginPath();
+			ctx.moveTo(-crossSize, 0);
+			ctx.lineTo(crossSize, 0);
+			ctx.stroke();
+
+			// Vertical line
+			ctx.beginPath();
+			ctx.moveTo(0, -crossSize);
+			ctx.lineTo(0, crossSize);
+			ctx.stroke();
+
+			// Center circle (larger and more visible)
+			ctx.beginPath();
+			ctx.arc(0, 0, 8, 0, Math.PI * 2);
+			ctx.fillStyle = 'rgba(255, 100, 0, 0.9)';
+			ctx.fill();
+
+			// White outline for better visibility
+			ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+			ctx.lineWidth = 2;
+			ctx.stroke();
 		}
 
 		ctx.restore();

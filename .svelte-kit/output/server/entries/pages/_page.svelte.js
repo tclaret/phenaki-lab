@@ -15,6 +15,7 @@ const detectedCircle = writable(null);
 const detectedCount = writable(0);
 const suggestedRotationSpeed = writable(1);
 const overlayVisible = writable(false);
+const editMode = writable(false);
 const detectionAnimation = writable({
   active: false,
   progress: 0,
@@ -111,6 +112,7 @@ function AnalyzerPanel($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
     let _detectedCircle, _detectedCount, _suggested, _overlay;
+    let busy = false;
     let manualSpeed = 0;
     let optsGifCount = 24;
     manualSpeed = Number(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0);
@@ -122,7 +124,15 @@ function AnalyzerPanel($$renderer, $$props) {
     {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--> <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;" class="svelte-14nyow8"><button${attr_class(_detectedCircle && !store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "play-highlight" : "", "svelte-14nyow8")}>${escape_html(store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "Pause" : "Play")}</button> <button class="svelte-14nyow8">Reverse</button> <button${attr_class(clsx(!_detectedCircle ? "detect-btn-required" : ""), "svelte-14nyow8")}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl), true)}>Detect Circle &amp; Count</button> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <button${attr("disabled", !store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas), true)} class="svelte-14nyow8">${escape_html("Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="3" step="1"${attr("value", optsGifCount)} style="width:70px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/></label> <label style="display:flex;align-items:center;gap:6px;margin-left:6px;" class="svelte-14nyow8"><input type="checkbox"${attr("checked", _overlay, true)} class="svelte-14nyow8"/> <span class="svelte-14nyow8">Show Overlay</span></label></div> `);
+    $$renderer2.push(`<!--]--> <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;" class="svelte-14nyow8"><button${attr_class(clsx(_detectedCircle && !store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "play-highlight" : ""), "svelte-14nyow8")}>${escape_html(store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "Pause" : "Play")}</button> <button class="svelte-14nyow8">Reverse</button> `);
+    if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<button class="confirm-btn svelte-14nyow8"${attr("disabled", busy, true)}>Confirm Detection</button> <button class="svelte-14nyow8">Cancel</button>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`<button${attr_class(clsx(!_detectedCircle ? "detect-btn-required" : ""), "svelte-14nyow8")}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl), true)}>Detect Circle &amp; Count</button>`);
+    }
+    $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <button${attr("disabled", !store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas), true)} class="svelte-14nyow8">${escape_html("Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="3" step="1"${attr("value", optsGifCount)} style="width:70px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/></label> <label style="display:flex;align-items:center;gap:6px;margin-left:6px;" class="svelte-14nyow8"><input type="checkbox"${attr("checked", _overlay, true)} class="svelte-14nyow8"/> <span class="svelte-14nyow8">Show Overlay</span></label></div> `);
     if (store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle)) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`<div${attr_class(`speed-control ${stringify("")} ${stringify("")}`, "svelte-14nyow8")}${attr_style(`left: ${stringify(16)}px; top: ${stringify(16)}px;`)}>`);
@@ -147,67 +157,107 @@ function AnalyzerPanel($$renderer, $$props) {
 function SampleImageSelector($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     const samples = [
-      { name: "Woman Chopping Tree", file: "WomanChoppingTree.jpg" },
-      { name: "Dancing", file: "Dancing.jpg" },
-      { name: "Jongleur", file: "Jongleur.png" },
-      { name: "a_cheval", file: "a_cheval.png" },
-      { name: "McLean_1", file: "McLean_1.png" },
-      { name: "Gernamy_1949", file: "Gernamy_1949_R_Balzer.png" },
+      {
+        name: "Woman Chopping Tree",
+        file: "WomanChoppingTree.jpg",
+        repo: "old"
+      },
+      { name: "Dancing", file: "Dancing.jpg", repo: "old" },
+      { name: "Jongleur", file: "Jongleur.png", repo: "old" },
+      { name: "a_cheval", file: "a_cheval.png", repo: "old" },
+      { name: "McLean_1", file: "McLean_1.png", repo: "old" },
+      {
+        name: "Gernamy_1949",
+        file: "Gernamy_1949_R_Balzer.png",
+        repo: "old"
+      },
       {
         name: "AEO175939",
-        file: "AEO175939_PhenakistoscopeGiroux60.jpg"
+        file: "AEO175939_PhenakistoscopeGiroux60.jpg",
+        repo: "old"
       },
       {
         name: "AEO185553",
-        file: "AEO185553_PhenakistiscopeDisc_ManInBlueAndRed.jpg"
+        file: "AEO185553_PhenakistiscopeDisc_ManInBlueAndRed.jpg",
+        repo: "old"
       },
       {
         name: "medium_1990_5036_3369",
-        file: "medium_1990_5036_3369.jpg"
+        file: "medium_1990_5036_3369.jpg",
+        repo: "old"
       },
-      { name: "medium_a001813b", file: "medium_a001813b.jpg" },
+      {
+        name: "medium_a001813b",
+        file: "medium_a001813b.jpg",
+        repo: "old"
+      },
       {
         name: "tumblr_obd6fh",
-        file: "tumblr_obd6fhGFSZ1r9jbwno1_500.png"
+        file: "tumblr_obd6fhGFSZ1r9jbwno1_500.png",
+        repo: "old"
       },
       {
         name: "tumblr_oc1cz",
-        file: "tumblr_oc1czn99ZM1r9jbwno1_500.png"
+        file: "tumblr_oc1czn99ZM1r9jbwno1_500.png",
+        repo: "old"
       },
       {
         name: "Phantasmascope Faces",
-        file: "Phantasmascope_faces.png"
+        file: "Phantasmascope_faces.png",
+        repo: "old"
       },
       {
         name: "722a6790240569.5e126845d9b56",
-        file: "722a6790240569.5e126845d9b56.png"
+        file: "722a6790240569.5e126845d9b56.png",
+        repo: "old"
       },
       {
         name: "Fantascope Disc 1833",
-        file: "fantascope-disc-1833.png"
+        file: "fantascope-disc-1833.png",
+        repo: "old"
       },
-      { name: "Face", file: "_face__.jpg" },
-      { name: "Culbute", file: "culbute.jpg" },
-      { name: "Grenouille", file: "Grenouille__.jpg" },
-      { name: "Oh Soccer", file: "oh_soccer.jpg" },
-      { name: "Un Grand Un Petit", file: "un_grand_un_petit.jpg" },
-      { name: "Autre Culbutte", file: "autre_culbutte.jpg" },
-      { name: "Dancing", file: "dancing_.jpg" },
-      { name: "Il Pompe de l'eau", file: "il_pompe_de_leau.jpg" },
-      { name: "Porceline", file: "porceline.jpg" },
-      { name: "Volants", file: "volants_.png" },
-      { name: "Ce Qui", file: "ce_qui.jpg" },
-      { name: "Des Anges", file: "des_anges.jpg" },
-      { name: "Moulin", file: "moulin_.jpg" },
-      { name: "Rats", file: "rats__.jpg" },
-      { name: "Corde à Danser", file: "corde_a_denser_.jpg" },
-      { name: "Ecureuil", file: "ecureuil.jpg" },
-      { name: "Noel Noel", file: "noel_noel.jpg" },
-      { name: "Tirreur", file: "tirreur_.jpg" },
-      { name: "C Pastel", file: "c_pastel.jpg" },
-      { name: "Géométrique", file: "geometrique.jpg" },
-      { name: "Nuages en Scie", file: "nuages_en_scie.jpg" },
-      { name: "Tons Pastels", file: "tons_pastels.jpg" }
+      { name: "Face", file: "_face__.jpg", repo: "new" },
+      { name: "Culbute", file: "culbute.jpg", repo: "new" },
+      { name: "Grenouille", file: "Grenouille__.jpg", repo: "new" },
+      { name: "Oh Soccer", file: "oh_soccer.jpg", repo: "new" },
+      {
+        name: "Un Grand Un Petit",
+        file: "un_grand_un_petit.jpg",
+        repo: "new"
+      },
+      {
+        name: "Autre Culbutte",
+        file: "autre_culbutte.jpg",
+        repo: "new"
+      },
+      { name: "Dancing 2", file: "dancing_.jpg", repo: "new" },
+      {
+        name: "Il Pompe de l'eau",
+        file: "il_pompe_de_leau.jpg",
+        repo: "new"
+      },
+      { name: "Porceline", file: "porceline.jpg", repo: "new" },
+      { name: "Volants", file: "volants_.png", repo: "new" },
+      { name: "Ce Qui", file: "ce_qui.jpg", repo: "new" },
+      { name: "Des Anges", file: "des_anges.jpg", repo: "new" },
+      { name: "Moulin", file: "moulin_.jpg", repo: "new" },
+      { name: "Rats", file: "rats__.jpg", repo: "new" },
+      {
+        name: "Corde à Danser",
+        file: "corde_a_denser_.jpg",
+        repo: "new"
+      },
+      { name: "Ecureuil", file: "ecureuil.jpg", repo: "new" },
+      { name: "Noel Noel", file: "noel_noel.jpg", repo: "new" },
+      { name: "Tirreur", file: "tirreur_.jpg", repo: "new" },
+      { name: "C Pastel", file: "c_pastel.jpg", repo: "new" },
+      { name: "Géométrique", file: "geometrique.jpg", repo: "new" },
+      {
+        name: "Nuages en Scie",
+        file: "nuages_en_scie.jpg",
+        repo: "new"
+      },
+      { name: "Tons Pastels", file: "tons_pastels.jpg", repo: "new" }
     ];
     $$renderer2.push(`<div class="selector svelte-ai08gq"><label for="samples" class="svelte-ai08gq">Sample Images:</label> <select id="samples" class="svelte-ai08gq">`);
     $$renderer2.option({ value: "" }, ($$renderer3) => {

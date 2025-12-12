@@ -300,7 +300,7 @@
 	});
 
 	function loop(ts) {
-		const isPlayingOrAnimating = $isPlaying || $detectionAnimation.active;
+		const isPlayingOrAnimating = $isPlaying || $detectionAnimation.active || $editMode;
 		if (!isPlayingOrAnimating || !imageReady) {
 			lastTime = 0;
 			if (!isPlayingOrAnimating && raf) {
@@ -313,8 +313,8 @@
 		const dt = ts - lastTime; // ms
 		lastTime = ts;
 
-		// rotationSpeed is degrees per second (only rotate if playing, not during detection animation)
-		if ($isPlaying) {
+		// rotationSpeed is degrees per second (only rotate if playing, not during detection animation or edit mode)
+		if ($isPlaying && !$editMode) {
 			const degPerSec = $rotationSpeed || 0;
 			angle += degPerSec * ($rotationDirection || 1) * (dt / 1000);
 		}
@@ -323,7 +323,7 @@
 	}
 
 	// React to play/pause changes
-	$: if ($isPlaying || $detectionAnimation.active) {
+	$: if ($isPlaying || $detectionAnimation.active || $editMode) {
 		// start the loop if not already running
 		if (!raf) raf = requestAnimationFrame(loop);
 	} else {
@@ -412,22 +412,22 @@
 			}
 		}
 
-		// Draw detection radar animation if active
-		if ($detectionAnimation.active) {
+		// Draw detection radar animation if active OR in edit mode
+		if ($detectionAnimation.active || $editMode) {
 			try {
 				// In edit mode, loop the animation continuously
 				let progress;
 				if ($editMode) {
 					// Continuous loop animation
-					const elapsed = Date.now() - $detectionAnimation.startTime;
+					const elapsed = Date.now() - ($detectionAnimation.startTime || Date.now());
 					progress = (elapsed % 2000) / 2000; // Loop every 2 seconds
 				} else {
 					// Normal one-time animation
 					progress = Math.min(1, (Date.now() - $detectionAnimation.startTime) / 2000);
 				}
 
-				// Semi-transparent overlay
-				ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+				// Semi-transparent overlay (darker in edit mode)
+				ctx.fillStyle = $editMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.3)';
 				ctx.fillRect(-dw / 2 - 100, -dh / 2 - 100, dw + 200, dh + 200);
 
 				// If circle is detected, show targeted animation
@@ -497,13 +497,26 @@
 
 					// Center text
 					ctx.fillStyle = `rgba(100, 200, 255, ${0.8 + 0.2 * Math.sin(progress * Math.PI * 4)})`;
-					ctx.font = 'bold 16px sans-serif';
+					ctx.font = 'bold 18px sans-serif';
 					ctx.textAlign = 'center';
 
 					if ($editMode) {
-						ctx.fillText('POSITION THE CENTER & ADJUST ZOOM', 0, -30);
+						// Main title
+						ctx.fillText('⚙️ EDIT MODE - ADJUST POSITION & ZOOM', 0, -60);
+
+						ctx.font = 'bold 16px sans-serif';
+						ctx.fillStyle = 'rgba(255, 200, 100, 0.95)';
+						ctx.fillText('🎯 Align crosshair with rotation center', 0, -20);
+
+						// Instructions
 						ctx.font = '14px sans-serif';
-						ctx.fillText('Align the crosshair with rotation center', 0, 0);
+						ctx.fillStyle = 'rgba(200, 255, 200, 0.9)';
+						ctx.fillText('👆 Drag to move  •  🔍 Scroll/Pinch to zoom', 0, 20);
+
+						// Hint at bottom
+						ctx.font = 'bold 14px sans-serif';
+						ctx.fillStyle = 'rgba(100, 255, 100, 0.9)';
+						ctx.fillText('Click "Confirm Detection" when ready', 0, 60);
 					} else {
 						ctx.fillText('ANALYZING IMAGE...', 0, -20);
 						// Progress indicator
@@ -527,13 +540,22 @@
 			}
 		}
 
-		// Edit mode: display center crosshair
+		// Edit mode: display center crosshair with pulsing effect
 		if ($editMode) {
-			ctx.strokeStyle = 'rgba(255, 100, 0, 0.9)';
-			ctx.lineWidth = 3;
-			const crossSize = Math.min(cw, ch) * 0.08;
+			const pulsePhase = (Date.now() % 1000) / 1000; // 0 to 1 every second
+			const pulseAlpha = 0.7 + 0.3 * Math.sin(pulsePhase * Math.PI * 2);
+
+			ctx.strokeStyle = `rgba(255, 100, 0, ${pulseAlpha})`;
+			ctx.lineWidth = 4;
+			const crossSize = Math.min(cw, ch) * 0.1;
+
+			// Outer circle (pulsing)
+			ctx.beginPath();
+			ctx.arc(0, 0, crossSize * 0.7, 0, Math.PI * 2);
+			ctx.stroke();
 
 			// Horizontal line
+			ctx.lineWidth = 3;
 			ctx.beginPath();
 			ctx.moveTo(-crossSize, 0);
 			ctx.lineTo(crossSize, 0);
@@ -545,16 +567,22 @@
 			ctx.lineTo(0, crossSize);
 			ctx.stroke();
 
-			// Center circle (larger and more visible)
+			// Center circle (larger and more visible with pulse)
 			ctx.beginPath();
-			ctx.arc(0, 0, 8, 0, Math.PI * 2);
-			ctx.fillStyle = 'rgba(255, 100, 0, 0.9)';
+			ctx.arc(0, 0, 10 + 3 * Math.sin(pulsePhase * Math.PI * 2), 0, Math.PI * 2);
+			ctx.fillStyle = `rgba(255, 100, 0, ${pulseAlpha})`;
 			ctx.fill();
 
 			// White outline for better visibility
-			ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+			ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
 			ctx.lineWidth = 2;
 			ctx.stroke();
+
+			// Small center dot
+			ctx.beginPath();
+			ctx.arc(0, 0, 3, 0, Math.PI * 2);
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+			ctx.fill();
 		}
 
 		ctx.restore();

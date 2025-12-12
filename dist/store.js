@@ -21,6 +21,9 @@ export const detectedPositions = writable([]); // positions along circle (angles
 // Overlay visibility toggle
 export const overlayVisible = writable(false);
 
+// Edit mode for positioning before detection
+export const editMode = writable(false);
+
 // Detection animation state
 export const detectionAnimation = writable({
   active: false,
