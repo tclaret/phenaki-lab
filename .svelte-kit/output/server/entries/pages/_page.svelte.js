@@ -67,7 +67,7 @@ function CanvasPlayer($$renderer, $$props) {
       playerCanvas.set(null);
     });
     function loop(ts) {
-      const isPlayingOrAnimating = store_get($$store_subs ??= {}, "$isPlaying", isPlaying) || store_get($$store_subs ??= {}, "$detectionAnimation", detectionAnimation).active;
+      const isPlayingOrAnimating = store_get($$store_subs ??= {}, "$isPlaying", isPlaying) || store_get($$store_subs ??= {}, "$detectionAnimation", detectionAnimation).active || store_get($$store_subs ??= {}, "$editMode", editMode);
       if (!isPlayingOrAnimating || !imageReady) {
         lastTime = 0;
         if (!isPlayingOrAnimating && raf) {
@@ -79,7 +79,7 @@ function CanvasPlayer($$renderer, $$props) {
       if (!lastTime) lastTime = ts;
       const dt = ts - lastTime;
       lastTime = ts;
-      if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying)) {
+      if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying) && !store_get($$store_subs ??= {}, "$editMode", editMode)) {
         const degPerSec = store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0;
         angle += degPerSec * (store_get($$store_subs ??= {}, "$rotationDirection", rotationDirection) || 1) * (dt / 1e3);
       }
@@ -91,7 +91,7 @@ function CanvasPlayer($$renderer, $$props) {
       if (htmlImg) htmlImg = null;
       imageReady = false;
     }
-    if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying) || store_get($$store_subs ??= {}, "$detectionAnimation", detectionAnimation).active) {
+    if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying) || store_get($$store_subs ??= {}, "$detectionAnimation", detectionAnimation).active || store_get($$store_subs ??= {}, "$editMode", editMode)) {
       if (!raf) raf = requestAnimationFrame(loop);
     } else {
       if (raf) {
