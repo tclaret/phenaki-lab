@@ -11,7 +11,12 @@
 		overlayVisible,
 		playerCanvas,
 		detectionAnimation,
-		editMode
+		editMode,
+		confirmedDetection,
+		canvasTransform,
+		isMobile,
+		flickerEnabled,
+		flickerFrequency
 	} from '$lib/store';
 	// also import detectedPositions which is set by runDetection
 	import { detectedPositions } from '$lib/store';
@@ -45,21 +50,24 @@
 		if (!url) return;
 
 		// Enter edit mode with continuous radar animation
-		editMode.set(true);
-
-		// Start continuous animation for edit mode
 		const animStartTime = Date.now();
 		detectionAnimation.set({
 			active: true,
 			progress: 0,
 			startTime: animStartTime
 		});
+		
+		// Set edit mode after animation is initialized to ensure proper rendering
+		editMode.set(true);
 	}
 
 	async function confirmDetection() {
 		const url = $imageUrl;
 		if (!url) return;
 		busy = true;
+		
+		// Capture the current transform state from edit mode
+		const transform = $canvasTransform;
 		editMode.set(false);
 
 		// Keep animation running for actual detection
@@ -79,18 +87,50 @@
 		try {
 			const img = await loadImage(url);
 
-			// try OpenCV-based detect if available
+			// Calculate rotation center from edit mode positioning
+			// The crosshair was at canvas center, we need to find which image pixel was under it
 			let circle = null;
-			try {
-				if (typeof cv !== 'undefined' && detectCircleCV) {
-					// detectCircle expects an Image element
-					circle = detectCircleCV(img);
+			
+			// Get canvas dimensions from playerCanvas
+			const canvas = $playerCanvas;
+			if (canvas) {
+				const cw = canvas.clientWidth;
+				const ch = canvas.clientHeight;
+				
+				// Calculate "contain" sizing (same logic as in CanvasPlayer)
+				const imageRatio = img.width / img.height;
+				const canvasRatio = cw / ch;
+				let dw, dh;
+				if (imageRatio > canvasRatio) {
+					dw = cw;
+					dh = cw / imageRatio;
+				} else {
+					dh = ch;
+					dw = ch * imageRatio;
 				}
-			} catch (e) {
-				// ignore and fallback
-				console.warn('cv detect failed, falling back', e);
+				
+				// The crosshair is at canvas center (cw/2, ch/2)
+				// The image transform origin is at (cw/2 + translateX, ch/2 + translateY)
+				// So the crosshair is at (-translateX, -translateY) in the transformed coordinate system
+				const crosshairX = -transform.translateX;
+				const crosshairY = -transform.translateY;
+				
+				// Convert from zoomed drawn space to unzoomed drawn space
+				const unzoomedX = crosshairX / transform.scale;
+				const unzoomedY = crosshairY / transform.scale;
+				
+				// Convert from drawn space (centered at 0,0 with size dw×dh) to image pixels
+				const scaleToImage = img.width / dw;
+				const imageX = unzoomedX * scaleToImage + img.width / 2;
+				const imageY = unzoomedY * scaleToImage + img.height / 2;
+				
+				circle = {
+					x: imageX,
+					y: imageY,
+					r: (Math.min(img.width, img.height) / 2) * 0.9
+				};
 			}
-
+			
 			if (!circle) {
 				// fallback: assume center and radius
 				circle = {
@@ -119,12 +159,15 @@
 			const suggestedDegPerSec = suggestedDegPerFrame * TARGET_FPS;
 			suggestedRotationSpeed.set(suggestedDegPerSec);
 
-			// Animation complete
+			// Animation complete - stop radar but show crosshair
 			detectionAnimation.set({
 				active: false,
 				progress: 1,
 				startTime: animStartTime
 			});
+			
+			// Show confirmed crosshair (will stay until play is pressed)
+			confirmedDetection.set(true);
 		} finally {
 			busy = false;
 		}
@@ -138,6 +181,7 @@
 
 	function cancelEditMode() {
 		editMode.set(false);
+		confirmedDetection.set(false);
 		detectionAnimation.set({
 			active: false,
 			progress: 0,
@@ -158,6 +202,8 @@
 
 	// GIF export
 	let exporting = false;
+	let gifFps = 30; // Higher FPS for smoother animation
+	
 	async function saveGif() {
 		const url = $imageUrl || get(imageUrl);
 		if (!url) return alert('No image loaded to export.');
@@ -172,8 +218,19 @@
 		ctx.drawImage(img, 0, 0, img.width, img.height);
 		exporting = true;
 		try {
-			// use the requested frame count (defaults to 24 for 1s at 24 fps)
-			const count = optsGifCount || 24;
+			// Use detected count for frame count (minimum 12, double the count for smoother animation)
+			// If user has manually set a count, use that instead
+			let count;
+			if (optsGifCount && optsGifCount !== _detectedCount * 2) {
+				// User has manually set frame count
+				count = optsGifCount;
+			} else if (_detectedCount && _detectedCount > 0) {
+				// Use detected count * 2 for smoother animation
+				count = Math.max(12, _detectedCount * 2);
+			} else {
+				// Fallback to manual count or default
+				count = optsGifCount || 24;
+			}
 
 			// build circle info from detection (required)
 			const circle = _detectedCircle;
@@ -190,13 +247,13 @@
 				outputSize,
 				margin: 1.05,
 				zoom: 1,
-				fps: 24,
+				fps: gifFps,
 				rotationSpeed: rotationSpeedValue,
 				direction: directionValue
 			});
 
-			// Export at 24 FPS for a smooth animation
-			const urlGif = await exportGif(frames, 24);
+			// Export with selected FPS for smooth animation
+			const urlGif = await exportGif(frames, gifFps);
 			const a = document.createElement('a');
 			a.href = urlGif;
 			a.download = 'phenaki-export.gif';
@@ -212,7 +269,7 @@
 	}
 
 	// allow user override for GIF frame count
-	let optsGifCount = 24;
+	let optsGifCount = null; // null means auto-detect
 
 	// draggable overlay position (persist in localStorage)
 	const POS_KEY = 'phenaki.speedControlPos';
@@ -366,11 +423,32 @@
 			<span style="font-size:12px;opacity:0.8;">Frames:</span>
 			<input
 				type="number"
-				min="3"
+				min="6"
 				step="1"
+				placeholder={_detectedCount ? `Auto (${_detectedCount * 2})` : 'Auto (24)'}
 				bind:value={optsGifCount}
-				style="width:70px;padding:4px;border-radius:4px;border:1px solid #ccc;"
+				style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;"
 			/>
+			<span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection">
+				{#if optsGifCount}
+					Manual
+				{:else if _detectedCount}
+					Auto (x2)
+				{:else}
+					Auto
+				{/if}
+			</span>
+		</label>
+		<label style="display:flex;align-items:center;gap:6px;">
+			<span style="font-size:12px;opacity:0.8;">FPS:</span>
+			<select
+				bind:value={gifFps}
+				style="padding:4px;border-radius:4px;border:1px solid #ccc;background:#333;color:white;"
+			>
+				<option value={24}>24 (Cinema)</option>
+				<option value={30}>30 (Smooth)</option>
+				<option value={60}>60 (Ultra)</option>
+			</select>
 		</label>
 		<label style="display:flex;align-items:center;gap:6px;margin-left:6px;">
 			<input
@@ -380,7 +458,117 @@
 			/>
 			<span>Show Overlay</span>
 		</label>
+		<label style="display:flex;align-items:center;gap:6px;margin-left:6px;">
+			<input
+				type="checkbox"
+				bind:checked={$flickerEnabled}
+			/>
+			<span>Flicker Effect</span>
+			{#if $flickerEnabled}
+				<span style="background: #4a9eff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; margin-left: 4px;">
+					{$flickerFrequency} Hz
+				</span>
+			{/if}
+		</label>
 	</div>
+
+	<!-- Flicker Fusion Threshold Controls -->
+	{#if $flickerEnabled}
+		<div style="margin-top: 16px; padding: 12px; background: rgba(74, 158, 255, 0.08); border-radius: 6px; border: 1px solid rgba(74, 158, 255, 0.2);">
+			<div style="font-weight: 600; margin-bottom: 10px; color: #4a9eff; font-size: 0.95em;">⚡ Flicker Fusion Threshold</div>
+			
+			<!-- Quick Presets -->
+			<div style="margin-bottom: 12px;">
+				<div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;">Quick Presets:</div>
+				<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+					<button 
+						on:click={() => flickerFrequency.set(42)}
+						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						42 Hz
+					</button>
+					<button 
+						on:click={() => flickerFrequency.set(50)}
+						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						50 Hz
+					</button>
+					<button 
+						on:click={() => flickerFrequency.set(55)}
+						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						55 Hz
+					</button>
+					<button 
+						on:click={() => flickerFrequency.set(60)}
+						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						60 Hz
+					</button>
+					<button 
+						on:click={() => flickerFrequency.set(70)}
+						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						70 Hz
+					</button>
+				</div>
+			</div>
+
+			<!-- Fine Control Slider -->
+			<div style="margin-top: 12px;">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+					<span style="font-size: 0.85em; color: #ccc;">Fine Tune:</span>
+					<span style="font-size: 1.1em; font-weight: bold; color: #4a9eff;">{$flickerFrequency} Hz</span>
+				</div>
+				<input 
+					type="range" 
+					min="40" 
+					max="70" 
+					step="0.5" 
+					value={$flickerFrequency}
+					on:input={(e)=>flickerFrequency.set(+e.target.value)}
+					style="width: 100%; cursor: pointer;" />
+				<div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #666; margin-top: 4px;">
+					<span>40 Hz</span>
+					<span style="color: #4a9eff; font-weight: 500;">
+						{#if $flickerFrequency < 48}
+							🔴 Visible
+						{:else if $flickerFrequency < 58}
+							🟡 Fusion
+						{:else}
+							🟢 Smooth
+						{/if}
+					</span>
+					<span>70 Hz</span>
+				</div>
+			</div>
+
+			<!-- Visual Guide -->
+			<div style="margin-top: 10px; padding: 8px; background: rgba(74, 158, 255, 0.12); border-radius: 4px; font-size: 0.8em;">
+				<div style="font-weight: 500; color: #4a9eff; margin-bottom: 3px;">
+					{#if $flickerFrequency < 48}
+						⚡ Strong Flicker
+					{:else if $flickerFrequency < 52}
+						🎯 Critical Threshold
+					{:else if $flickerFrequency < 58}
+						✨ Near-Fusion
+					{:else if $flickerFrequency < 62}
+						🎬 Cinema (60 Hz)
+					{:else}
+						🌟 Ultra Smooth
+					{/if}
+				</div>
+				<div style="color: #aaa; font-size: 0.9em;">
+					{#if $flickerFrequency < 48}
+						Noticeable flicker - classic phenakistoscope effect
+					{:else if $flickerFrequency < 52}
+						Flicker begins to fuse - critical threshold
+					{:else if $flickerFrequency < 58}
+						Subtle pulsing - artistic sweet spot
+					{:else if $flickerFrequency < 62}
+						Standard cinema/TV rate - minimal flicker
+					{:else}
+						Above fusion threshold - very smooth
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
 
 	{#if $detectedCircle}
 		<div
@@ -407,7 +595,11 @@
 			<div>
 				<strong>Current Speed:</strong>
 				{$rotationSpeed.toFixed(0)}°/s |
-				<em style="font-size:12px;opacity:0.7;">(Touch: drag up to speed up, down to slow down)</em>
+				{#if $isMobile}
+					<em style="font-size:12px;opacity:0.7;">(Use +/− buttons above to adjust speed)</em>
+				{:else}
+					<em style="font-size:12px;opacity:0.7;">(Touch: drag up to speed up, down to slow down)</em>
+				{/if}
 			</div>
 			<div style="display:flex;gap:6px;align-items:center;">
 				<label for="manual-speed-input" style="font-size:12px;">Type speed:</label>
@@ -465,6 +657,19 @@
 		z-index: 9999;
 		user-select: none;
 		cursor: auto;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+
+	/* Mobile optimizations */
+	@media (max-width: 768px) {
+		.speed-control {
+			/* On mobile, make it easier to reach */
+			bottom: 80px;
+			right: 10px;
+			left: auto !important;
+			top: auto !important;
+			max-width: calc(100vw - 20px);
+		}
 	}
 	.speed-control.dragMode {
 		cursor: grab;

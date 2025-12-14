@@ -12,7 +12,10 @@
 		detectionAnimation,
 		flickerEnabled,
 		flickerFrequency,
-		editMode
+		editMode,
+		confirmedDetection,
+		canvasTransform,
+		isMobile
 	} from '$lib/store';
 
 	let wrapper;
@@ -25,6 +28,22 @@
 	const maxScale = 4;
 	let translateX = 0; // css px relative to center
 	let translateY = 0;
+	
+	// Sync local state to store (one-way: local -> store)
+	$: canvasTransform.set({ translateX, translateY, scale });
+	
+	// Reset pan/zoom when entering edit mode
+	$: if ($editMode) {
+		translateX = 0;
+		translateY = 0;
+		scale = 1;
+		drawFrame();
+	}
+	
+	// Clear confirmed crosshair when playing starts
+	$: if ($isPlaying) {
+		confirmedDetection.set(false);
+	}
 	// pointer tracking for pinch/pan
 	const pointers = new Map();
 	let pinchStartScale = 1;
@@ -114,12 +133,35 @@
 	}
 
 	onMount(() => {
+		// Detect mobile device based on screen width and touch capability
+		const checkMobile = () => {
+			const mobile = window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024);
+			isMobile.set(mobile);
+		};
+		checkMobile();
+		window.addEventListener('resize', checkMobile);
+		
 		if (canvas) {
 			// expose the canvas element to other components (for GIF export)
 			playerCanvas.set(canvas);
 			ctx = canvas.getContext('2d');
 			// prevent browser from panning the page when touching the canvas
-			if (wrapper) wrapper.style.touchAction = 'none';
+			// On mobile, only prevent touch action when zoomed in or in edit mode
+			if (wrapper) {
+				const updateTouchAction = () => {
+					if ($isMobile) {
+						// On mobile: allow scrolling when not zoomed/editing
+						wrapper.style.touchAction = (scale > 1 || $editMode) ? 'none' : 'pan-y';
+					} else {
+						// On desktop: always prevent default touch actions
+						wrapper.style.touchAction = 'none';
+					}
+				};
+				updateTouchAction();
+				// Update touch action when scale or edit mode changes
+				const unsubScale = canvasTransform.subscribe(updateTouchAction);
+				const unsubEdit = editMode.subscribe(updateTouchAction);
+			}
 			// wheel zoom
 			if (wrapper) wrapper.addEventListener('wheel', onWheel, { passive: false });
 			resizeCanvas();
@@ -135,12 +177,19 @@
 
 		return () => {
 			if (ro) ro.disconnect();
+			window.removeEventListener('resize', checkMobile);
 		};
 	});
 
 	// Pointer / touch handlers to change rotation speed by dragging vertically
 	function onPointerDown(e) {
 		if (!wrapper) return;
+		
+		// Prevent default touch behavior when in edit mode or zoomed
+		if ($editMode || scale > 1) {
+			e.preventDefault();
+		}
+		
 		wrapper.setPointerCapture(e.pointerId);
 		// track pointer for pinch/zoom
 		pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -150,8 +199,8 @@
 		const dx = e.clientX - lastTapX;
 		const dy = e.clientY - lastTapY;
 		const distance = Math.sqrt(dx * dx + dy * dy);
-		if (now - lastTapTime < 300 && distance < 50) {
-			// Double-tap detected: toggle play/pause
+		if (now - lastTapTime < 300 && distance < 50 && !$editMode) {
+			// Double-tap detected: toggle play/pause (disabled in edit mode)
 			isPlaying.update((v) => !v);
 			// reset pointers
 			pointers.clear();
@@ -180,6 +229,12 @@
 
 	function onPointerMove(e) {
 		if (!wrapper) return;
+		
+		// Prevent default touch behavior when in edit mode or zoomed
+		if (($editMode || scale > 1) && pointers.has(e.pointerId)) {
+			e.preventDefault();
+		}
+		
 		// update pointer position
 		if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
@@ -210,10 +265,10 @@
 			return;
 		}
 
-		// single pointer: if zoomed, pan; else adjust speed vertical drag
+		// single pointer: if zoomed OR in edit mode, pan; else adjust speed vertical drag
 		if (pointers.size === 1) {
 			const p = pointers.values().next().value;
-			if (scale > 1) {
+			if (scale > 1 || $editMode) {
 				const dx = e.clientX - lastPanX;
 				const dy = e.clientY - lastPanY;
 				translateX += dx;
@@ -222,7 +277,8 @@
 				lastPanY = e.clientY;
 				drawFrame();
 				return;
-			} else {
+			} else if (!$isMobile) {
+				// On desktop only: vertical drag adjusts speed when not zoomed
 				const dy = pointerStartY - e.clientY; // drag up => positive dy => increase speed
 				const sensitivity = 8; // degrees/sec per pixel
 				const delta = Math.round(dy * sensitivity);
@@ -231,6 +287,7 @@
 				showSpeedHUD = true;
 				clearTimeout(hudTimeout);
 			}
+			// On mobile: do nothing for single finger swipe when not zoomed (allow page scroll)
 		}
 	}
 
@@ -322,15 +379,21 @@
 		raf = requestAnimationFrame(loop);
 	}
 
-	// React to play/pause changes
-	$: if ($isPlaying || $detectionAnimation.active || $editMode) {
-		// start the loop if not already running
-		if (!raf) raf = requestAnimationFrame(loop);
-	} else {
-		if (raf) {
-			cancelAnimationFrame(raf);
-			raf = null;
-			lastTime = 0;
+	// React to play/pause/edit changes - ensure animation loop runs when needed
+	$: {
+		const shouldAnimate = $isPlaying || $detectionAnimation.active || $editMode;
+		if (shouldAnimate) {
+			// start the loop if not already running
+			if (!raf) {
+				raf = requestAnimationFrame(loop);
+			}
+		} else {
+			// stop the loop
+			if (raf) {
+				cancelAnimationFrame(raf);
+				raf = null;
+				lastTime = 0;
+			}
 		}
 	}
 
@@ -361,8 +424,23 @@
 		// then rotate and draw centered
 		const dwZoom = dw * scale;
 		const dhZoom = dh * scale;
+		
+		// If we have a detected circle, rotate around its center instead of image center
+		let rotationOffsetX = 0;
+		let rotationOffsetY = 0;
+		if ($detectedCircle) {
+			// Calculate offset from image center to circle center in image space
+			const scaleImg = dw / htmlImg.width; // Scale factor from image pixels to drawn size
+			rotationOffsetX = ($detectedCircle.x - htmlImg.width / 2) * scaleImg * scale;
+			rotationOffsetY = ($detectedCircle.y - htmlImg.height / 2) * scaleImg * scale;
+		}
+		
 		ctx.translate(cw / 2 + translateX, ch / 2 + translateY);
+		// Translate to the detected circle center
+		ctx.translate(rotationOffsetX, rotationOffsetY);
 		ctx.rotate((angle * Math.PI) / 180);
+		// Translate back to draw the image centered at the rotation point
+		ctx.translate(-rotationOffsetX, -rotationOffsetY);
 		ctx.drawImage(htmlImg, -dwZoom / 2, -dhZoom / 2, dwZoom, dhZoom);
 
 		// Draw overlay if enabled and we have a detected circle
@@ -412,14 +490,15 @@
 			}
 		}
 
-		// Draw detection radar animation if active OR in edit mode
-		if ($detectionAnimation.active || $editMode) {
+		// Draw detection radar animation only in edit mode (not after confirmation)
+		if ($editMode) {
 			try {
 				// In edit mode, loop the animation continuously
 				let progress;
 				if ($editMode) {
-					// Continuous loop animation
-					const elapsed = Date.now() - ($detectionAnimation.startTime || Date.now());
+					// Continuous loop animation - use a fallback startTime if not set
+					const startTime = $detectionAnimation.startTime || 0;
+					const elapsed = startTime > 0 ? (Date.now() - startTime) : Date.now();
 					progress = (elapsed % 2000) / 2000; // Loop every 2 seconds
 				} else {
 					// Normal one-time animation
@@ -529,21 +608,60 @@
 			}
 		}
 
-		// Flicker effect (simulates persistence of vision threshold)
+		// Flicker fusion threshold effect (simulates persistence of vision)
 		if ($flickerEnabled && $isPlaying) {
 			const flickerPeriod = 1000 / $flickerFrequency; // ms per cycle
 			const phase = (lastTime % flickerPeriod) / flickerPeriod; // 0 to 1
-			// Create a sharp on/off flicker (square wave)
-			if (phase > 0.5) {
-				ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+			
+			// Calculate overlay intensity based on frequency (fusion threshold simulation)
+			// Below 50 Hz: strong, visible flicker
+			// 50-60 Hz: moderate flicker (near fusion threshold)
+			// Above 60 Hz: subtle flicker (above fusion threshold)
+			const fusionFactor = Math.max(0, Math.min(1, ($flickerFrequency - 40) / 30)); // 0 at 40Hz, 1 at 70Hz
+			
+			// Create flicker with varying sharpness
+			let flickerIntensity;
+			if (fusionFactor < 0.33) {
+				// Low frequency: sharp square wave flicker
+				flickerIntensity = phase > 0.5 ? 0.85 : 0;
+			} else if (fusionFactor < 0.67) {
+				// Medium frequency: softer transition
+				const smoothPhase = Math.sin(phase * Math.PI * 2) * 0.5 + 0.5;
+				flickerIntensity = smoothPhase > 0.6 ? 0.6 : 0;
+			} else {
+				// High frequency: very subtle pulsing (near/above fusion)
+				const smoothPhase = Math.sin(phase * Math.PI * 2) * 0.5 + 0.5;
+				flickerIntensity = smoothPhase * 0.3;
+			}
+			
+			// Apply the overlay with a gradient effect
+			if (flickerIntensity > 0.05) {
+				// Create a subtle vignette effect for the overlay
+				const gradient = ctx.createRadialGradient(cw/2, ch/2, 0, cw/2, ch/2, Math.max(cw, ch) * 0.8);
+				gradient.addColorStop(0, `rgba(0, 0, 0, ${flickerIntensity * 0.7})`);
+				gradient.addColorStop(0.5, `rgba(0, 0, 0, ${flickerIntensity})`);
+				gradient.addColorStop(1, `rgba(0, 0, 0, ${flickerIntensity * 0.9})`);
+				ctx.fillStyle = gradient;
 				ctx.fillRect(-cw, -ch, cw * 3, ch * 3);
+				
+				// Add a subtle color tint at lower frequencies for retro effect
+				if (fusionFactor < 0.5) {
+					ctx.fillStyle = `rgba(20, 20, 40, ${flickerIntensity * 0.15})`;
+					ctx.fillRect(-cw, -ch, cw * 3, ch * 3);
+				}
 			}
 		}
 
-		// Edit mode: display center crosshair with pulsing effect
-		if ($editMode) {
+		ctx.restore();
+
+		// Display center crosshair in edit mode OR after confirmed detection (AFTER restore, so it stays fixed)
+		if ($editMode || $confirmedDetection) {
 			const pulsePhase = (Date.now() % 1000) / 1000; // 0 to 1 every second
 			const pulseAlpha = 0.7 + 0.3 * Math.sin(pulsePhase * Math.PI * 2);
+
+			// Draw in canvas coordinates (center of viewport)
+			ctx.save();
+			ctx.translate(cw / 2, ch / 2);
 
 			ctx.strokeStyle = `rgba(255, 100, 0, ${pulseAlpha})`;
 			ctx.lineWidth = 4;
@@ -583,16 +701,21 @@
 			ctx.arc(0, 0, 3, 0, Math.PI * 2);
 			ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
 			ctx.fill();
-		}
 
-		ctx.restore();
+			ctx.restore();
+		}
 	}
 </script>
 
-<div class="canvas-wrapper" bind:this={wrapper}>
+<div class="canvas-wrapper {$editMode ? 'edit-mode' : ''}" bind:this={wrapper}>
 	<canvas bind:this={canvas}></canvas>
 	{#if showSpeedHUD}
 		<div class="speed-hud">Speed: {$rotationSpeed.toFixed(0)}°/s</div>
+	{/if}
+	{#if $editMode}
+		<div class="edit-mode-indicator">
+			⚙️ EDIT MODE - Drag to position • Scroll to zoom
+		</div>
 	{/if}
 </div>
 
@@ -601,12 +724,29 @@
 		width: 100%;
 		height: 300px;
 		position: relative;
+		transition: border 0.3s ease;
 	}
+	
+	.canvas-wrapper.edit-mode {
+		border: 3px solid rgba(255, 100, 0, 0.8);
+		border-radius: 8px;
+		box-shadow: 0 0 20px rgba(255, 100, 0, 0.4);
+	}
+	
 	canvas {
 		width: 100%;
 		height: 100%;
 		background: #111;
 		border-radius: 6px;
+		cursor: move;
+	}
+	
+	.canvas-wrapper.edit-mode canvas {
+		cursor: grab;
+	}
+	
+	.canvas-wrapper.edit-mode canvas:active {
+		cursor: grabbing;
 	}
 
 	.speed-hud {
@@ -621,5 +761,30 @@
 		font-weight: 600;
 		pointer-events: none;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	}
+	
+	.edit-mode-indicator {
+		position: absolute;
+		top: 8px;
+		left: 50%;
+		transform: translateX(-50%);
+		background: rgba(255, 100, 0, 0.95);
+		color: white;
+		padding: 8px 16px;
+		border-radius: 6px;
+		font-size: 14px;
+		font-weight: 700;
+		pointer-events: none;
+		box-shadow: 0 2px 12px rgba(255, 100, 0, 0.6);
+		animation: pulse 2s ease-in-out infinite;
+	}
+	
+	@keyframes pulse {
+		0%, 100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.7;
+		}
 	}
 </style>

@@ -7,7 +7,7 @@
 {#if currentPreview}
   <div class="preview">
     <img src={currentPreview} alt="Selected disc preview" />
-  </div>f
+  </div>
 {/if}
 
 <style>

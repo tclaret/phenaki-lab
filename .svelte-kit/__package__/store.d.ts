@@ -9,6 +9,12 @@ export const suggestedRotationSpeed: import("svelte/store").Writable<number>;
 export const detectedPositions: import("svelte/store").Writable<never[]>;
 export const overlayVisible: import("svelte/store").Writable<boolean>;
 export const editMode: import("svelte/store").Writable<boolean>;
+export const confirmedDetection: import("svelte/store").Writable<boolean>;
+export const canvasTransform: import("svelte/store").Writable<{
+    translateX: number;
+    translateY: number;
+    scale: number;
+}>;
 export const detectionAnimation: import("svelte/store").Writable<{
     active: boolean;
     progress: number;
@@ -23,3 +29,4 @@ export const params: import("svelte/store").Writable<{
 }>;
 export const flickerEnabled: import("svelte/store").Writable<boolean>;
 export const flickerFrequency: import("svelte/store").Writable<number>;
+export const isMobile: import("svelte/store").Writable<boolean>;
