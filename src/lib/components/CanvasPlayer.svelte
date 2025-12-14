@@ -491,7 +491,7 @@
 		}
 
 		// Draw detection radar animation only in edit mode (not after confirmation)
-		if ($editMode) {
+		if ($editMode && !$confirmedDetection) {
 			try {
 				// In edit mode, loop the animation continuously
 				let progress;

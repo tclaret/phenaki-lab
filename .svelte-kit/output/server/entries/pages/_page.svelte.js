@@ -436,7 +436,7 @@ function AnalyzerPanel($$renderer, $$props) {
     let _detectedCircle, _detectedCount, _suggested, _overlay;
     let busy = false;
     let manualSpeed = 0;
-    let gifFps = 30;
+    let gifFps = 15;
     let optsGifCount = null;
     manualSpeed = Number(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0);
     _detectedCircle = store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle);
@@ -476,6 +476,27 @@ function AnalyzerPanel($$renderer, $$props) {
       },
       ($$renderer3) => {
         $$renderer3.option(
+          { value: 10, class: "" },
+          ($$renderer4) => {
+            $$renderer4.push(`10 (Slow/Classic)`);
+          },
+          "svelte-14nyow8"
+        );
+        $$renderer3.option(
+          { value: 15, class: "" },
+          ($$renderer4) => {
+            $$renderer4.push(`15 (Natural)`);
+          },
+          "svelte-14nyow8"
+        );
+        $$renderer3.option(
+          { value: 20, class: "" },
+          ($$renderer4) => {
+            $$renderer4.push(`20 (Smooth)`);
+          },
+          "svelte-14nyow8"
+        );
+        $$renderer3.option(
           { value: 24, class: "" },
           ($$renderer4) => {
             $$renderer4.push(`24 (Cinema)`);
@@ -485,14 +506,7 @@ function AnalyzerPanel($$renderer, $$props) {
         $$renderer3.option(
           { value: 30, class: "" },
           ($$renderer4) => {
-            $$renderer4.push(`30 (Smooth)`);
-          },
-          "svelte-14nyow8"
-        );
-        $$renderer3.option(
-          { value: 60, class: "" },
-          ($$renderer4) => {
-            $$renderer4.push(`60 (Ultra)`);
+            $$renderer4.push(`30 (Fast)`);
           },
           "svelte-14nyow8"
         );
@@ -678,7 +692,7 @@ function SampleImageSelector($$renderer, $$props) {
         file: "fantascope-disc-1833.png",
         repo: "old"
       },
-      { name: "Face", file: "_face__.jpg", repo: "new" },
+      { name: "Face", file: "a_face__.jpg", repo: "new" },
       { name: "Culbute", file: "culbute.jpg", repo: "new" },
       { name: "Grenouille", file: "Grenouille__.jpg", repo: "new" },
       { name: "Oh Soccer", file: "oh_soccer.jpg", repo: "new" },

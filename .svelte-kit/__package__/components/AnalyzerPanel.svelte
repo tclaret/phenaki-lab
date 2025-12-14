@@ -202,7 +202,7 @@
 
 	// GIF export
 	let exporting = false;
-	let gifFps = 30; // Higher FPS for smoother animation
+	let gifFps = 15; // Slower FPS for smoother, more natural looking animation like Prof Stampfer
 	
 	async function saveGif() {
 		const url = $imageUrl || get(imageUrl);
@@ -242,13 +242,18 @@
 			// slice frames rotating around the detected circle center using the chosen speed
 			const rotationSpeedValue = Number(get(rotationSpeed) || 0); // deg/sec
 			const directionValue = Number(get(rotationDirection) || 1);
+			
+			// For GIF export, we want a complete 360° rotation divided by frame count
+			// This ensures smooth looping regardless of playback speed
+			const degreesPerFrame = 360 / count;
+			
 			const frames = sliceDisk(canvas, count, {
 				circle,
 				outputSize,
 				margin: 1.05,
 				zoom: 1,
 				fps: gifFps,
-				rotationSpeed: rotationSpeedValue,
+				rotationSpeed: degreesPerFrame * gifFps, // Convert to deg/sec for sliceDisk
 				direction: directionValue
 			});
 
@@ -445,9 +450,11 @@
 				bind:value={gifFps}
 				style="padding:4px;border-radius:4px;border:1px solid #ccc;background:#333;color:white;"
 			>
+				<option value={10}>10 (Slow/Classic)</option>
+				<option value={15}>15 (Natural)</option>
+				<option value={20}>20 (Smooth)</option>
 				<option value={24}>24 (Cinema)</option>
-				<option value={30}>30 (Smooth)</option>
-				<option value={60}>60 (Ultra)</option>
+				<option value={30}>30 (Fast)</option>
 			</select>
 		</label>
 		<label style="display:flex;align-items:center;gap:6px;margin-left:6px;">

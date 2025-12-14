@@ -22,7 +22,7 @@
 		{ name: 'Phantasmascope Faces', file: 'Phantasmascope_faces.png', repo: 'old' },
 		{ name: '722a6790240569.5e126845d9b56', file: '722a6790240569.5e126845d9b56.png', repo: 'old' },
 		{ name: 'Fantascope Disc 1833', file: 'fantascope-disc-1833.png', repo: 'old' },
-		{ name: 'Face', file: '_face__.jpg', repo: 'new' },
+		{ name: 'Face', file: 'a_face__.jpg', repo: 'new' },
 		{ name: 'Culbute', file: 'culbute.jpg', repo: 'new' },
 		{ name: 'Grenouille', file: 'Grenouille__.jpg', repo: 'new' },
 		{ name: 'Oh Soccer', file: 'oh_soccer.jpg', repo: 'new' },
