@@ -82,6 +82,7 @@
 		htmlImg.crossOrigin = 'anonymous';
 
 		htmlImg.onload = () => {
+			console.log('Image loaded:', url, 'Size:', htmlImg.width, 'x', htmlImg.height);
 			imageReady = true;
 			resizeCanvas();
 			drawFrame();
@@ -398,7 +399,10 @@
 	}
 
 	function drawFrame() {
-		if (!imageReady || !ctx || !htmlImg || !canvas) return;
+		if (!imageReady || !ctx || !htmlImg || !canvas) {
+			console.log('DrawFrame skipped:', { imageReady, ctx: !!ctx, htmlImg: !!htmlImg, canvas: !!canvas });
+			return;
+		}
 
 		// use CSS pixel sizes for layout calculations; ctx is scaled to DPR
 		const cw = canvas.clientWidth;
@@ -761,6 +765,22 @@
 		font-weight: 600;
 		pointer-events: none;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+		max-width: calc(100% - 16px);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		z-index: 10;
+	}
+	
+	/* Mobile responsive adjustments */
+	@media (max-width: 600px) {
+		.speed-hud {
+			font-size: 14px;
+			padding: 8px 12px;
+			right: 4px;
+			top: 4px;
+			max-width: calc(100% - 8px);
+		}
 	}
 	
 	.edit-mode-indicator {

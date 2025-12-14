@@ -170,7 +170,7 @@ function CanvasPlayer($$renderer, $$props) {
           console.warn("overlay draw failed", e);
         }
       }
-      if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
+      if (store_get($$store_subs ??= {}, "$editMode", editMode) && !store_get($$store_subs ??= {}, "$confirmedDetection", confirmedDetection)) {
         try {
           let progress;
           if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
@@ -447,7 +447,9 @@ function AnalyzerPanel($$renderer, $$props) {
     {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--> <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;" class="svelte-14nyow8"><button${attr_class(clsx(_detectedCircle && !store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "play-highlight" : ""), "svelte-14nyow8")}>${escape_html(store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "Pause" : "Play")}</button> <button class="svelte-14nyow8">Reverse</button> `);
+    $$renderer2.push(`<!--]--> <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;" class="svelte-14nyow8"><button${attr_class(clsx(_detectedCircle && !store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "play-highlight" : ""), "svelte-14nyow8", {
+      "pause-subtle": store_get($$store_subs ??= {}, "$isPlaying", isPlaying) && !_detectedCircle
+    })}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl), true)}>${escape_html(store_get($$store_subs ??= {}, "$isPlaying", isPlaying) ? "Pause" : "Play")}</button> <button class="svelte-14nyow8">Reverse</button> `);
     if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`<button class="confirm-btn svelte-14nyow8"${attr("disabled", busy, true)}>Confirm Detection</button> <button class="svelte-14nyow8">Cancel</button>`);
@@ -455,7 +457,7 @@ function AnalyzerPanel($$renderer, $$props) {
       $$renderer2.push("<!--[!-->");
       $$renderer2.push(`<button${attr_class(clsx(!_detectedCircle ? "detect-btn-required" : ""), "svelte-14nyow8")}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl), true)}>Detect Circle &amp; Count</button>`);
     }
-    $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <button${attr("disabled", !store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas), true)} class="svelte-14nyow8">${escape_html("Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="6" step="1"${attr("placeholder", _detectedCount ? `Auto (${_detectedCount * 2})` : "Auto (24)")}${attr("value", optsGifCount)} style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection" class="svelte-14nyow8">`);
+    $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <div class="gif-export-group svelte-14nyow8"><button${attr("disabled", !store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas), true)} class="svelte-14nyow8">${escape_html("Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="6" step="1"${attr("placeholder", _detectedCount ? `Auto (${_detectedCount * 2})` : "Auto (24)")}${attr("value", optsGifCount)} style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection" class="svelte-14nyow8">`);
     {
       $$renderer2.push("<!--[!-->");
       if (_detectedCount) {
@@ -513,7 +515,7 @@ function AnalyzerPanel($$renderer, $$props) {
       },
       "svelte-14nyow8"
     );
-    $$renderer2.push(`</label> <label style="display:flex;align-items:center;gap:6px;margin-left:6px;" class="svelte-14nyow8"><input type="checkbox"${attr("checked", _overlay, true)} class="svelte-14nyow8"/> <span class="svelte-14nyow8">Show Overlay</span></label> <label style="display:flex;align-items:center;gap:6px;margin-left:6px;" class="svelte-14nyow8"><input type="checkbox"${attr("checked", store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled), true)} class="svelte-14nyow8"/> <span class="svelte-14nyow8">Flicker Effect</span> `);
+    $$renderer2.push(`</label></div> <label style="display:flex;align-items:center;gap:6px;margin-left:6px;" class="svelte-14nyow8"><input type="checkbox"${attr("checked", _overlay, true)} class="svelte-14nyow8"/> <span class="svelte-14nyow8">Show Overlay</span></label> <label style="display:flex;align-items:center;gap:6px;margin-left:6px;" class="svelte-14nyow8"><input type="checkbox"${attr("checked", store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled), true)} class="svelte-14nyow8"/> <span class="svelte-14nyow8">Flicker Effect</span> `);
     if (store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled)) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`<span style="background: #4a9eff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; margin-left: 4px;" class="svelte-14nyow8">${escape_html(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} Hz</span>`);

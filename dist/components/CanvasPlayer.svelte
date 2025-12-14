@@ -491,7 +491,7 @@
 		}
 
 		// Draw detection radar animation only in edit mode (not after confirmation)
-		if ($editMode) {
+		if ($editMode && !$confirmedDetection) {
 			try {
 				// In edit mode, loop the animation continuously
 				let progress;
@@ -761,6 +761,22 @@
 		font-weight: 600;
 		pointer-events: none;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+		max-width: calc(100% - 16px);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		z-index: 10;
+	}
+	
+	/* Mobile responsive adjustments */
+	@media (max-width: 600px) {
+		.speed-hud {
+			font-size: 14px;
+			padding: 8px 12px;
+			right: 4px;
+			top: 4px;
+			max-width: calc(100% - 8px);
+		}
 	}
 	
 	.edit-mode-indicator {

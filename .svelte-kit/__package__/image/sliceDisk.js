@@ -5,10 +5,13 @@ export function sliceDisk(canvas, count = 24, opts = {}) {
 
   const circle = opts.circle || { x: srcW / 2, y: srcH / 2, r: Math.min(srcW, srcH) / 2 };
 
-  // diameter in source pixels
-  const diameterSrc = Math.round(circle.r * 2);
+  // Apply margin to radius to capture a larger area (entire disk, not just inner circle)
   const margin = opts.margin ?? 1.05;
-  const outputSize = opts.outputSize || Math.max(32, Math.round(diameterSrc * margin));
+  const captureRadius = Math.round(circle.r * margin); // Use margin to expand capture area
+
+  // diameter in source pixels - using expanded radius to capture full disk
+  const diameterSrc = captureRadius * 2;
+  const outputSize = opts.outputSize || Math.max(32, Math.round(diameterSrc));
 
   const fps = opts.fps || 24;
   const rotationSpeed = typeof opts.rotationSpeed === 'number' ? opts.rotationSpeed : 0; // deg/sec
@@ -21,8 +24,9 @@ export function sliceDisk(canvas, count = 24, opts = {}) {
   const cctx = crop.getContext('2d');
 
   // draw the square region containing the circle
-  const sx = Math.round(circle.x - circle.r);
-  const sy = Math.round(circle.y - circle.r);
+  // Use original circle center but expanded radius to capture full disk
+  const sx = Math.round(circle.x - captureRadius);
+  const sy = Math.round(circle.y - captureRadius);
   try {
     cctx.drawImage(canvas, sx, sy, diameterSrc, diameterSrc, 0, 0, diameterSrc, diameterSrc);
   } catch (e) {
@@ -30,13 +34,17 @@ export function sliceDisk(canvas, count = 24, opts = {}) {
     cctx.drawImage(canvas, 0, 0);
   }
 
-  // mask to a circle so outside is transparent
-  cctx.globalCompositeOperation = 'destination-in';
-  cctx.beginPath();
-  cctx.arc(diameterSrc / 2, diameterSrc / 2, diameterSrc / 2, 0, Math.PI * 2);
-  cctx.fillStyle = 'black';
-  cctx.fill();
-  cctx.globalCompositeOperation = 'source-over';
+  // Don't mask to a circle - we want to see the entire disk including the outer edges
+  // For phenakistoscopes, the full disk (including black bars) should be visible
+  // If masking is needed, it should use the full capture radius, not a smaller circle
+  
+  // Optional: mask only if explicitly requested, otherwise keep the full square capture
+  // cctx.globalCompositeOperation = 'destination-in';
+  // cctx.beginPath();
+  // cctx.arc(diameterSrc / 2, diameterSrc / 2, diameterSrc / 2, 0, Math.PI * 2);
+  // cctx.fillStyle = 'black';
+  // cctx.fill();
+  // cctx.globalCompositeOperation = 'source-over';
 
   // optionally scale crop to output size if different
   const scale = outputSize / diameterSrc;

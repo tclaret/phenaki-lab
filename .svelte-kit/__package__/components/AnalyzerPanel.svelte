@@ -168,6 +168,9 @@
 			
 			// Show confirmed crosshair (will stay until play is pressed)
 			confirmedDetection.set(true);
+			
+			// Stop playing so user sees "Play" button highlighted
+			isPlaying.set(false);
 		} finally {
 			busy = false;
 		}
@@ -235,9 +238,9 @@
 			// build circle info from detection (required)
 			const circle = _detectedCircle;
 
-			// output size: cap to a reasonable browser window size (480px max)
-			const circleDiameter = circle.r * 2 * 1.1;
-			const outputSize = Math.min(480, Math.round(circleDiameter));
+			// If the detected circle is already the outer disk edge (visible in overlay),
+			// we just need a small margin for padding, not a large multiplier
+			const outputSize = Math.min(480, Math.round(circle.r * 2 * 1.1));
 
 			// slice frames rotating around the detected circle center using the chosen speed
 			const rotationSpeedValue = Number(get(rotationSpeed) || 0); // deg/sec
@@ -250,7 +253,7 @@
 			const frames = sliceDisk(canvas, count, {
 				circle,
 				outputSize,
-				margin: 1.05,
+				margin: 1.1, // Small margin - detected circle is already the correct outer edge
 				zoom: 1,
 				fps: gifFps,
 				rotationSpeed: degreesPerFrame * gifFps, // Convert to deg/sec for sliceDisk
@@ -404,7 +407,11 @@
 		</div>
 	{/if}
 	<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-		<button class={_detectedCircle && !$isPlaying ? 'play-highlight' : ''} on:click={togglePlay}
+		<button 
+			class={_detectedCircle && !$isPlaying ? 'play-highlight' : ''}
+			class:pause-subtle={$isPlaying && !_detectedCircle}
+			on:click={togglePlay}
+			disabled={!$imageUrl}
 			>{$isPlaying ? 'Pause' : 'Play'}</button
 		>
 		<button on:click={reverseDir}>Reverse</button>
@@ -421,42 +428,47 @@
 			>
 		{/if}
 		<button on:click={applySuggestedSpeed} disabled={!_suggested}>Apply Suggested Speed</button>
-		<button on:click={saveGif} disabled={exporting || !$playerCanvas}
-			>{exporting ? 'Exporting...' : 'Save GIF'}</button
-		>
-		<label style="display:flex;align-items:center;gap:6px;">
-			<span style="font-size:12px;opacity:0.8;">Frames:</span>
-			<input
-				type="number"
-				min="6"
-				step="1"
-				placeholder={_detectedCount ? `Auto (${_detectedCount * 2})` : 'Auto (24)'}
-				bind:value={optsGifCount}
-				style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;"
-			/>
-			<span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection">
-				{#if optsGifCount}
-					Manual
-				{:else if _detectedCount}
-					Auto (x2)
-				{:else}
-					Auto
-				{/if}
-			</span>
-		</label>
-		<label style="display:flex;align-items:center;gap:6px;">
-			<span style="font-size:12px;opacity:0.8;">FPS:</span>
-			<select
-				bind:value={gifFps}
-				style="padding:4px;border-radius:4px;border:1px solid #ccc;background:#333;color:white;"
+		
+		<!-- GIF Export Group -->
+		<div class="gif-export-group">
+			<button on:click={saveGif} disabled={exporting || !$playerCanvas}
+				>{exporting ? 'Exporting...' : 'Save GIF'}</button
 			>
-				<option value={10}>10 (Slow/Classic)</option>
-				<option value={15}>15 (Natural)</option>
-				<option value={20}>20 (Smooth)</option>
-				<option value={24}>24 (Cinema)</option>
-				<option value={30}>30 (Fast)</option>
-			</select>
-		</label>
+			<label style="display:flex;align-items:center;gap:6px;">
+				<span style="font-size:12px;opacity:0.8;">Frames:</span>
+				<input
+					type="number"
+					min="6"
+					step="1"
+					placeholder={_detectedCount ? `Auto (${_detectedCount * 2})` : 'Auto (24)'}
+					bind:value={optsGifCount}
+					style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;"
+				/>
+				<span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection">
+					{#if optsGifCount}
+						Manual
+					{:else if _detectedCount}
+						Auto (x2)
+					{:else}
+						Auto
+					{/if}
+				</span>
+			</label>
+			<label style="display:flex;align-items:center;gap:6px;">
+				<span style="font-size:12px;opacity:0.8;">FPS:</span>
+				<select
+					bind:value={gifFps}
+					style="padding:4px;border-radius:4px;border:1px solid #ccc;background:#333;color:white;"
+				>
+					<option value={10}>10 (Slow/Classic)</option>
+					<option value={15}>15 (Natural)</option>
+					<option value={20}>20 (Smooth)</option>
+					<option value={24}>24 (Cinema)</option>
+					<option value={30}>30 (Fast)</option>
+				</select>
+			</label>
+		</div>
+		
 		<label style="display:flex;align-items:center;gap:6px;margin-left:6px;">
 			<input
 				type="checkbox"
@@ -772,6 +784,22 @@
 		50% {
 			box-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
 		}
+	}
+
+	.pause-subtle {
+		opacity: 0.6;
+		font-weight: normal;
+	}
+
+	.gif-export-group {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		flex-wrap: wrap;
+		padding: 8px 12px;
+		border: 2px solid #555;
+		border-radius: 8px;
+		background: rgba(68, 68, 68, 0.3);
 	}
 
 	.confirm-btn {
