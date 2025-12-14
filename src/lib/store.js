@@ -11,7 +11,7 @@ export const isPlaying = writable(false);
 // rotationSpeed: degrees per second (time-based)
 // Default is faster so spinning feels immediate on phones
 export const rotationSpeed = writable(360);
-export const rotationDirection = writable(1);
+export const rotationDirection = writable(-1);
 
 // Detected circle metadata (from analyzer)
 export const detectedCircle = writable(null); // { x,y,r }

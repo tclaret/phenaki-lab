@@ -796,9 +796,9 @@
 		align-items: center;
 		flex-wrap: wrap;
 		padding: 8px 12px;
-		border: 2px solid #555;
+		border: 2px solid #4a90e2;
 		border-radius: 8px;
-		background: rgba(68, 68, 68, 0.3);
+		background: rgba(74, 144, 226, 0.15);
 	}
 
 	.confirm-btn {

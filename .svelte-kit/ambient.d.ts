@@ -34,6 +34,7 @@ declare module '$env/static/private' {
 	export const XDG_CONFIG_DIRS: string;
 	export const LESS: string;
 	export const XDG_MENU_PREFIX: string;
+	export const TERM_PROGRAM_VERSION: string;
 	export const npm_config_npm_globalconfig: string;
 	export const ICEAUTHORITY: string;
 	export const LANGUAGE: string;
@@ -53,6 +54,7 @@ declare module '$env/static/private' {
 	export const DESKTOP_SESSION: string;
 	export const LC_MONETARY: string;
 	export const GTK_RC_FILES: string;
+	export const NO_AT_BRIDGE: string;
 	export const GDK_CORE_DEVICE_EVENTS: string;
 	export const npm_config_globalconfig: string;
 	export const GPG_TTY: string;
@@ -67,6 +69,7 @@ declare module '$env/static/private' {
 	export const MANPATH: string;
 	export const SYSTEMD_EXEC_PID: string;
 	export const XAUTHORITY: string;
+	export const VSCODE_GIT_ASKPASS_NODE: string;
 	export const GUESTFISH_RESTORE: string;
 	export const GDM_LANG: string;
 	export const GTK2_RC_FILES: string;
@@ -81,19 +84,23 @@ declare module '$env/static/private' {
 	export const XDG_CURRENT_DESKTOP: string;
 	export const npm_package_version: string;
 	export const MEMORY_PRESSURE_WATCH: string;
-	export const VTE_VERSION: string;
 	export const WAYLAND_DISPLAY: string;
 	export const GUESTFISH_PS1: string;
-	export const GNOME_TERMINAL_SCREEN: string;
+	export const GIT_ASKPASS: string;
 	export const PERL5LIB: string;
+	export const INVOCATION_ID: string;
 	export const pnpm_config_verify_deps_before_run: string;
+	export const MANAGERPID: string;
 	export const IMSETTINGS_MODULE: string;
 	export const INIT_CWD: string;
+	export const CHROME_DESKTOP: string;
 	export const KDE_SESSION_UID: string;
 	export const XDG_CACHE_HOME: string;
 	export const npm_lifecycle_script: string;
 	export const MOZ_GMP_PATH: string;
+	export const VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 	export const XKB_DEFAULT_LAYOUT: string;
+	export const VSCODE_PYTHON_AUTOACTIVATE_GUARD: string;
 	export const KWIN_DRM_USE_EGL_STREAMS: string;
 	export const XDG_SESSION_CLASS: string;
 	export const TERM: string;
@@ -104,7 +111,7 @@ declare module '$env/static/private' {
 	export const USER: string;
 	export const npm_config_frozen_lockfile: string;
 	export const LIBRARY_PATH: string;
-	export const GNOME_TERMINAL_SERVICE: string;
+	export const VSCODE_GIT_IPC_HANDLE: string;
 	export const MODULES_RUN_QUARANTINE: string;
 	export const QT_WAYLAND_RECONNECT: string;
 	export const KDE_SESSION_VERSION: string;
@@ -124,6 +131,7 @@ declare module '$env/static/private' {
 	export const PNPM_SCRIPT_SRC_DIR: string;
 	export const XDG_STATE_HOME: string;
 	export const npm_execpath: string;
+	export const FC_FONTATIONS: string;
 	export const LD_LIBRARY_PATH: string;
 	export const QT_SCALE_FACTOR_ROUNDING_POLICY: string;
 	export const XDG_RUNTIME_DIR: string;
@@ -136,9 +144,12 @@ declare module '$env/static/private' {
 	export const BUN_INSTALL: string;
 	export const DEBUGINFOD_IMA_CERT_PATH: string;
 	export const KDEDIRS: string;
+	export const VSCODE_GIT_ASKPASS_MAIN: string;
 	export const QT_AUTO_SCREEN_SCALE_FACTOR: string;
+	export const JOURNAL_STREAM: string;
 	export const XDG_DATA_DIRS: string;
 	export const PERL_LOCAL_LIB_ROOT: string;
+	export const GDK_BACKEND: string;
 	export const KDE_FULL_SESSION: string;
 	export const PATH: string;
 	export const __GLX_VENDOR_LIBRARY_NAME: string;
@@ -159,6 +170,7 @@ declare module '$env/static/private' {
 	export const OLDPWD: string;
 	export const GOPATH: string;
 	export const MODULES_CMD: string;
+	export const TERM_PROGRAM: string;
 	export const NODE_ENV: string;
 	export const PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: string;
 }
@@ -198,6 +210,7 @@ declare module '$env/dynamic/private' {
 		XDG_CONFIG_DIRS: string;
 		LESS: string;
 		XDG_MENU_PREFIX: string;
+		TERM_PROGRAM_VERSION: string;
 		npm_config_npm_globalconfig: string;
 		ICEAUTHORITY: string;
 		LANGUAGE: string;
@@ -217,6 +230,7 @@ declare module '$env/dynamic/private' {
 		DESKTOP_SESSION: string;
 		LC_MONETARY: string;
 		GTK_RC_FILES: string;
+		NO_AT_BRIDGE: string;
 		GDK_CORE_DEVICE_EVENTS: string;
 		npm_config_globalconfig: string;
 		GPG_TTY: string;
@@ -231,6 +245,7 @@ declare module '$env/dynamic/private' {
 		MANPATH: string;
 		SYSTEMD_EXEC_PID: string;
 		XAUTHORITY: string;
+		VSCODE_GIT_ASKPASS_NODE: string;
 		GUESTFISH_RESTORE: string;
 		GDM_LANG: string;
 		GTK2_RC_FILES: string;
@@ -245,19 +260,23 @@ declare module '$env/dynamic/private' {
 		XDG_CURRENT_DESKTOP: string;
 		npm_package_version: string;
 		MEMORY_PRESSURE_WATCH: string;
-		VTE_VERSION: string;
 		WAYLAND_DISPLAY: string;
 		GUESTFISH_PS1: string;
-		GNOME_TERMINAL_SCREEN: string;
+		GIT_ASKPASS: string;
 		PERL5LIB: string;
+		INVOCATION_ID: string;
 		pnpm_config_verify_deps_before_run: string;
+		MANAGERPID: string;
 		IMSETTINGS_MODULE: string;
 		INIT_CWD: string;
+		CHROME_DESKTOP: string;
 		KDE_SESSION_UID: string;
 		XDG_CACHE_HOME: string;
 		npm_lifecycle_script: string;
 		MOZ_GMP_PATH: string;
+		VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 		XKB_DEFAULT_LAYOUT: string;
+		VSCODE_PYTHON_AUTOACTIVATE_GUARD: string;
 		KWIN_DRM_USE_EGL_STREAMS: string;
 		XDG_SESSION_CLASS: string;
 		TERM: string;
@@ -268,7 +287,7 @@ declare module '$env/dynamic/private' {
 		USER: string;
 		npm_config_frozen_lockfile: string;
 		LIBRARY_PATH: string;
-		GNOME_TERMINAL_SERVICE: string;
+		VSCODE_GIT_IPC_HANDLE: string;
 		MODULES_RUN_QUARANTINE: string;
 		QT_WAYLAND_RECONNECT: string;
 		KDE_SESSION_VERSION: string;
@@ -288,6 +307,7 @@ declare module '$env/dynamic/private' {
 		PNPM_SCRIPT_SRC_DIR: string;
 		XDG_STATE_HOME: string;
 		npm_execpath: string;
+		FC_FONTATIONS: string;
 		LD_LIBRARY_PATH: string;
 		QT_SCALE_FACTOR_ROUNDING_POLICY: string;
 		XDG_RUNTIME_DIR: string;
@@ -300,9 +320,12 @@ declare module '$env/dynamic/private' {
 		BUN_INSTALL: string;
 		DEBUGINFOD_IMA_CERT_PATH: string;
 		KDEDIRS: string;
+		VSCODE_GIT_ASKPASS_MAIN: string;
 		QT_AUTO_SCREEN_SCALE_FACTOR: string;
+		JOURNAL_STREAM: string;
 		XDG_DATA_DIRS: string;
 		PERL_LOCAL_LIB_ROOT: string;
+		GDK_BACKEND: string;
 		KDE_FULL_SESSION: string;
 		PATH: string;
 		__GLX_VENDOR_LIBRARY_NAME: string;
@@ -323,6 +346,7 @@ declare module '$env/dynamic/private' {
 		OLDPWD: string;
 		GOPATH: string;
 		MODULES_CMD: string;
+		TERM_PROGRAM: string;
 		NODE_ENV: string;
 		PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: string;
 		[key: `PUBLIC_${string}`]: undefined;

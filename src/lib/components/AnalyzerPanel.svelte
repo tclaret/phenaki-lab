@@ -688,6 +688,28 @@
 			top: auto !important;
 			max-width: calc(100vw - 20px);
 		}
+
+		/* Make buttons finger-friendly on mobile */
+		button {
+			min-height: 44px;
+			padding: 10px 16px;
+			font-size: 16px;
+		}
+
+		.gif-export-group {
+			gap: 12px;
+		}
+
+		.gif-export-group button {
+			min-height: 44px;
+			padding: 10px 20px;
+		}
+
+		.gif-export-group input,
+		.gif-export-group select {
+			min-height: 44px;
+			font-size: 16px;
+		}
 	}
 	.speed-control.dragMode {
 		cursor: grab;
@@ -796,9 +818,9 @@
 		align-items: center;
 		flex-wrap: wrap;
 		padding: 8px 12px;
-		border: 2px solid #555;
+		border: 2px solid #4a90e2;
 		border-radius: 8px;
-		background: rgba(68, 68, 68, 0.3);
+		background: rgba(74, 144, 226, 0.15);
 	}
 
 	.confirm-btn {

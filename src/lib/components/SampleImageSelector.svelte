@@ -135,4 +135,13 @@
 	select:hover {
 		border-color: #777;
 	}
+	
+	/* Mobile-friendly touch target */
+	@media (max-width: 768px) {
+		select {
+			min-height: 44px;
+			padding: 10px 12px;
+			font-size: 16px;
+		}
+	}
 </style>

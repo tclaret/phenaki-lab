@@ -751,6 +751,131 @@ function SampleImageSelector($$renderer, $$props) {
         name: "Jongle avec les Otaries",
         file: "Jongle_avec_les_otaries.png",
         repo: "new"
+      },
+      {
+        name: "Cinémathèque 1",
+        file: "cinemateque_francaise_1.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 2",
+        file: "cinemateque_francaise_2.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 3",
+        file: "cinemateque_francaise_3.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 4",
+        file: "cinemateque_francaise_4.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 5",
+        file: "cinemateque_francaise_5.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 6",
+        file: "cinemateque_francaise_6.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 7",
+        file: "cinemateque_francaise_7.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 8",
+        file: "cinemateque_francaise_8.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 9",
+        file: "cinemateque_francaise_9.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 10",
+        file: "cinemateque_francaise_10.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 11",
+        file: "cinemateque_francaise_11.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 12",
+        file: "cinemateque_francaise_12.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 13",
+        file: "cinemateque_francaise_13.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 14",
+        file: "cinemateque_francaise_14.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 15",
+        file: "cinemateque_francaise_15.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 16",
+        file: "cinemateque_francaise_16.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 17",
+        file: "cinemateque_francaise_17.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 18",
+        file: "cinemateque_francaise_18.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 19",
+        file: "cinemateque_francaise_19.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 20",
+        file: "cinemateque_francaise_20.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 21",
+        file: "cinemateque_francaise_21.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 22",
+        file: "cinemateque_francaise_22.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 23",
+        file: "cinemateque_francaise_23.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 24",
+        file: "cinemateque_francaise_24.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 25",
+        file: "cinemateque_francaise_25.png",
+        repo: "new"
       }
     ];
     $$renderer2.push(`<div class="selector svelte-ai08gq"><label for="samples" class="svelte-ai08gq">Sample Images:</label> <select id="samples" class="svelte-ai08gq">`);
