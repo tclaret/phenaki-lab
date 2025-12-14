@@ -238,10 +238,9 @@
 			// build circle info from detection (required)
 			const circle = _detectedCircle;
 
-			// If the detected circle is already the outer disk edge (visible in overlay),
-			// we just need a small margin for padding, not a large multiplier
-			const outputSize = Math.min(480, Math.round(circle.r * 2 * 1.1));
-
+			// Let sliceDisk calculate outputSize automatically based on the detected circle
+			// Don't force a specific outputSize to avoid cropping
+			
 			// slice frames rotating around the detected circle center using the chosen speed
 			const rotationSpeedValue = Number(get(rotationSpeed) || 0); // deg/sec
 			const directionValue = Number(get(rotationDirection) || 1);
@@ -252,7 +251,7 @@
 			
 			const frames = sliceDisk(canvas, count, {
 				circle,
-				outputSize,
+				// Don't pass outputSize - let sliceDisk calculate it from circle + margin
 				margin: 1.1, // Small margin - detected circle is already the correct outer edge
 				zoom: 1,
 				fps: gifFps,

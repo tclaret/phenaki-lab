@@ -43,7 +43,11 @@
 		{ name: 'C Pastel', file: 'c_pastel.jpg', repo: 'new' },
 		{ name: 'Géométrique', file: 'geometrique.jpg', repo: 'new' },
 		{ name: 'Nuages en Scie', file: 'nuages_en_scie.jpg', repo: 'new' },
-		{ name: 'Tons Pastels', file: 'tons_pastels.jpg', repo: 'new' }
+		{ name: 'Tons Pastels', file: 'tons_pastels.jpg', repo: 'new' },
+		{ name: 'Des Ouiseaux', file: 'DesOuaisaux.png', repo: 'new' },
+		{ name: 'Feels Like Flying', file: 'feels_like_flying.png', repo: 'new' },
+		{ name: 'Gros Meusieur', file: 'GrosMeusieur.png', repo: 'new' },
+		{ name: 'Jongle avec les Otaries', file: 'Jongle_avec_les_otaries.png', repo: 'new' }
 	];
 
 	function selectSample(sample) {

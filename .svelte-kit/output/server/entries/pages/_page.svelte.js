@@ -69,6 +69,7 @@ function CanvasPlayer($$renderer, $$props) {
       htmlImg = new Image();
       htmlImg.crossOrigin = "anonymous";
       htmlImg.onload = () => {
+        console.log("Image loaded:", url, "Size:", htmlImg.width, "x", htmlImg.height);
         imageReady = true;
         drawFrame();
       };
@@ -103,7 +104,10 @@ function CanvasPlayer($$renderer, $$props) {
       raf = requestAnimationFrame(loop);
     }
     function drawFrame() {
-      if (!imageReady || !ctx || !htmlImg || !canvas) return;
+      if (!imageReady || !ctx || !htmlImg || !canvas) {
+        console.log("DrawFrame skipped:", { imageReady, ctx: false, htmlImg: !!htmlImg, canvas: false });
+        return;
+      }
       const cw = canvas.clientWidth;
       const ch = canvas.clientHeight;
       ctx.clearRect(0, 0, cw, ch);
@@ -735,7 +739,19 @@ function SampleImageSelector($$renderer, $$props) {
         file: "nuages_en_scie.jpg",
         repo: "new"
       },
-      { name: "Tons Pastels", file: "tons_pastels.jpg", repo: "new" }
+      { name: "Tons Pastels", file: "tons_pastels.jpg", repo: "new" },
+      { name: "Des Ouiseaux", file: "DesOuaisaux.png", repo: "new" },
+      {
+        name: "Feels Like Flying",
+        file: "feels_like_flying.png",
+        repo: "new"
+      },
+      { name: "Gros Meusieur", file: "GrosMeusieur.png", repo: "new" },
+      {
+        name: "Jongle avec les Otaries",
+        file: "Jongle_avec_les_otaries.png",
+        repo: "new"
+      }
     ];
     $$renderer2.push(`<div class="selector svelte-ai08gq"><label for="samples" class="svelte-ai08gq">Sample Images:</label> <select id="samples" class="svelte-ai08gq">`);
     $$renderer2.option({ value: "" }, ($$renderer3) => {

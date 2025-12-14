@@ -82,6 +82,7 @@
 		htmlImg.crossOrigin = 'anonymous';
 
 		htmlImg.onload = () => {
+			console.log('Image loaded:', url, 'Size:', htmlImg.width, 'x', htmlImg.height);
 			imageReady = true;
 			resizeCanvas();
 			drawFrame();
@@ -133,9 +134,12 @@
 	}
 
 	onMount(() => {
-		// Detect mobile device based on screen width and touch capability
+		// Detect mobile/tablet device based on touch capability and screen size
 		const checkMobile = () => {
-			const mobile = window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024);
+			// Consider it mobile/tablet if it has touch support, regardless of screen width
+			// This ensures tablets in landscape mode are properly detected
+			const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+			const mobile = hasTouch || window.innerWidth < 768;
 			isMobile.set(mobile);
 		};
 		checkMobile();
@@ -150,8 +154,12 @@
 			if (wrapper) {
 				const updateTouchAction = () => {
 					if ($isMobile) {
-						// On mobile: allow scrolling when not zoomed/editing
-						wrapper.style.touchAction = (scale > 1 || $editMode) ? 'none' : 'pan-y';
+						// On mobile/tablet: force touch-action to none in edit mode or when zoomed
+						if (scale > 1 || $editMode) {
+							wrapper.style.touchAction = 'none';
+						} else {
+							wrapper.style.touchAction = 'pan-y';
+						}
 					} else {
 						// On desktop: always prevent default touch actions
 						wrapper.style.touchAction = 'none';
@@ -185,9 +193,11 @@
 	function onPointerDown(e) {
 		if (!wrapper) return;
 		
-		// Prevent default touch behavior when in edit mode or zoomed
+		// CRITICAL: Prevent default touch behavior when in edit mode or zoomed
+		// This is essential for tablet/touch devices to allow dragging
 		if ($editMode || scale > 1) {
 			e.preventDefault();
+			e.stopPropagation();
 		}
 		
 		wrapper.setPointerCapture(e.pointerId);
@@ -230,9 +240,11 @@
 	function onPointerMove(e) {
 		if (!wrapper) return;
 		
-		// Prevent default touch behavior when in edit mode or zoomed
+		// CRITICAL: Prevent default touch behavior when in edit mode or zoomed
+		// This is essential for tablet/touch devices to allow dragging
 		if (($editMode || scale > 1) && pointers.has(e.pointerId)) {
 			e.preventDefault();
+			e.stopPropagation();
 		}
 		
 		// update pointer position
@@ -398,7 +410,10 @@
 	}
 
 	function drawFrame() {
-		if (!imageReady || !ctx || !htmlImg || !canvas) return;
+		if (!imageReady || !ctx || !htmlImg || !canvas) {
+			console.log('DrawFrame skipped:', { imageReady, ctx: !!ctx, htmlImg: !!htmlImg, canvas: !!canvas });
+			return;
+		}
 
 		// use CSS pixel sizes for layout calculations; ctx is scaled to DPR
 		const cw = canvas.clientWidth;
