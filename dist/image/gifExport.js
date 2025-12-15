@@ -12,7 +12,8 @@ export async function exportGif(frames, fps = 24) {
     height: frames[0].height,
     workerScript: gifWorkerUrl,
     repeat: 0,
-    background: null
+    background: null,
+    comment: 'Created with Phenakistoscope Lab - https://tclaret.github.io/phenaki-lab/'
   });
 
   // Add each frame with delay calculated from fps

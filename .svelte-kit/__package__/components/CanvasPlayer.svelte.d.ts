@@ -2,6 +2,10 @@ export default CanvasPlayer;
 type CanvasPlayer = SvelteComponent<{
     [x: string]: never;
 }, {
+    pointerdown: PointerEvent;
+    pointermove: PointerEvent;
+    pointerup: PointerEvent;
+} & {
     [evt: string]: CustomEvent<any>;
 }, {}> & {
     $$bindings?: string | undefined;
@@ -9,6 +13,10 @@ type CanvasPlayer = SvelteComponent<{
 declare const CanvasPlayer: $$__sveltets_2_IsomorphicComponent<{
     [x: string]: never;
 }, {
+    pointerdown: PointerEvent;
+    pointermove: PointerEvent;
+    pointerup: PointerEvent;
+} & {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {

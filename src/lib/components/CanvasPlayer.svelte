@@ -49,9 +49,14 @@
 	// pointer tracking for pinch/pan
 	const pointers = new Map();
 	let pinchStartScale = 1;
+	let pinchStartDist = 0;
 	let lastPanX = 0;
 	let lastPanY = 0;
 	let raf;
+	// Smoothing for mobile pinch
+	let targetScale = 1;
+	let smoothingRaf = null;
+	let lastDrawTime = 0;
 	let lastTime = 0;
 	// Pointer (touch) speed control
 	let pointerActive = false;
@@ -239,8 +244,9 @@
 		if (pointers.size === 2) {
 			const pts = Array.from(pointers.values());
 			pinchStartScale = scale;
+			targetScale = scale;
 			// store start distance for pinch
-			onPointerMove.pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+			pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
 		}
 	}
 
@@ -263,9 +269,17 @@
 			const a = pts[0];
 			const b = pts[1];
 			const dist = Math.hypot(a.x - b.x, a.y - b.y);
-			const prevDist = onPointerMove.pinchStartDist || dist;
-			const ratio = dist / prevDist;
+			const ratio = dist / pinchStartDist;
+			
+			// Calculer le nouveau scale avec lissage
 			let newScale = Math.max(minScale, Math.min(maxScale, pinchStartScale * ratio));
+			
+			// Appliquer un lissage exponentiel pour un mouvement plus fluide sur mobile
+			if ($isMobile) {
+				const smoothFactor = 0.3; // Plus élevé = plus réactif, plus bas = plus doux
+				targetScale = newScale;
+				newScale = scale + (targetScale - scale) * smoothFactor;
+			}
 
 			// adjust translate so the midpoint remains fixed
 			const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
@@ -279,6 +293,18 @@
 			translateX = translateX - (s1 / s0 - 1) * cx;
 			translateY = translateY - (s1 / s0 - 1) * cy;
 			scale = newScale;
+			
+			// Throttle le redraw sur mobile pour de meilleures performances
+			if ($isMobile) {
+				const now = Date.now();
+				if (now - lastDrawTime > 16) { // Max 60 FPS
+					drawFrame();
+					lastDrawTime = now;
+				}
+			} else {
+				drawFrame();
+			}
+			
 			showSpeedHUD = true;
 			clearTimeout(hudTimeout);
 			return;
@@ -328,6 +354,9 @@
 		if (pointers.size === 0) {
 			clearTimeout(hudTimeout);
 			showSpeedHUD = false;
+			// Reset pinch variables
+			pinchStartDist = 0;
+			targetScale = scale;
 		}
 	}
 
@@ -475,36 +504,232 @@
 				const cy = (c.y - htmlImg.height / 2) * scaleImg;
 				const cr = c.r * scaleImg;
 
-				// circle
+				// Retro-futuristic radar animation
+				const radarTime = Date.now() / 1000; // seconds
+				const radarAngle = (radarTime * Math.PI * 0.5) % (Math.PI * 2); // Slow rotation
+				
+				// Pulsing retro-futuristic color rings (cyan, magenta, yellow)
+				const retroColors = [
+					{ r: 0, g: 255, b: 255 },     // Cyan
+					{ r: 255, g: 0, b: 255 },     // Magenta
+					{ r: 255, g: 255, b: 0 }      // Yellow
+				];
+				
+				for (let i = 0; i < 3; i++) {
+					const pulsePhase = (radarTime * 0.8 + i * 0.5) % 2;
+					const pulseRadius = cr * (0.8 + pulsePhase * 0.4);
+					const pulseOpacity = Math.max(0, 0.4 * (1 - pulsePhase / 2));
+					const color = retroColors[i];
+					
+					ctx.beginPath();
+					ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${pulseOpacity})`;
+					ctx.lineWidth = 4;
+					ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
+					ctx.stroke();
+					
+					// Add vibrant glow effect
+					ctx.shadowBlur = 20;
+					ctx.shadowColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${pulseOpacity * 0.9})`;
+					ctx.stroke();
+					ctx.shadowBlur = 0;
+				}
+				
+				// Rotating radar sweep with retro gradient (cyan to magenta)
+				const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, cr);
+				gradient.addColorStop(0, 'rgba(255, 0, 255, 0.5)');      // Magenta center
+				gradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.3)');    // Cyan middle
+				gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');        // Fade to magenta
+				
+				ctx.save();
+				ctx.translate(cx, cy);
+				ctx.rotate(radarAngle);
 				ctx.beginPath();
-				ctx.lineWidth = Math.max(2, 2);
-				ctx.strokeStyle = 'rgba(255,160,0,0.85)';
+				ctx.moveTo(0, 0);
+				ctx.arc(0, 0, cr * 1.1, 0, Math.PI * 0.4);
+				ctx.lineTo(0, 0);
+				ctx.fillStyle = gradient;
+				ctx.fill();
+				ctx.restore();
+				
+				// Grid lines for retro effect (optional radial lines)
+				ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+				ctx.lineWidth = 1;
+				for (let i = 0; i < 12; i++) {
+					const gridAngle = (i / 12) * Math.PI * 2;
+					ctx.beginPath();
+					ctx.moveTo(cx, cy);
+					ctx.lineTo(cx + Math.cos(gridAngle) * cr, cy + Math.sin(gridAngle) * cr);
+					ctx.stroke();
+					
+					// Afficher les angles tous les 90 degrés
+					if (i % 3 === 0) {
+						const angleDeg = Math.round((gridAngle * 180 / Math.PI) % 360);
+						const labelDist = cr * 1.15;
+						const lx = cx + Math.cos(gridAngle) * labelDist;
+						const ly = cy + Math.sin(gridAngle) * labelDist;
+						
+						ctx.font = 'bold 10px monospace';
+						ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+						ctx.textAlign = 'center';
+						ctx.textBaseline = 'middle';
+						ctx.fillText(`${angleDeg}°`, lx, ly);
+					}
+				}
+				
+				// Affichage des calculs mathématiques - formules animées
+				const mathOpacity = 0.5 + Math.sin(radarTime * 2) * 0.2;
+				ctx.font = '11px monospace';
+				ctx.textAlign = 'left';
+				
+				// Équations en haut à droite
+				const eqStartX = cx + cr * 0.3;
+				const eqStartY = cy - cr * 0.8;
+				const lineHeight = 14;
+				
+				const equations = [
+					`r = ${Math.round(c.r)}px`,
+					`θ = ${Math.round((radarAngle * 180 / Math.PI) % 360)}°`,
+					`ω = ${$rotationSpeed}°/s`,
+					`sin(θ) = ${Math.sin(radarAngle).toFixed(3)}`,
+					`cos(θ) = ${Math.cos(radarAngle).toFixed(3)}`,
+					`n = ${$detectedCount || 0} frames`
+				];
+				
+				equations.forEach((eq, idx) => {
+					const yPos = eqStartY + idx * lineHeight;
+					const phaseShift = idx * 0.3;
+					const opacity = (mathOpacity + Math.sin(radarTime * 3 + phaseShift) * 0.2) * 0.7;
+					
+					// Fond semi-transparent
+					ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+					ctx.fillRect(eqStartX - 2, yPos - 8, 95, 12);
+					
+					// Texte avec couleur alternée
+					const colors = ['rgba(0, 255, 255, ', 'rgba(255, 0, 255, ', 'rgba(255, 255, 0, '];
+					ctx.fillStyle = colors[idx % 3] + opacity + ')';
+					ctx.shadowBlur = 5;
+					ctx.shadowColor = colors[idx % 3] + '0.8)';
+					ctx.fillText(eq, eqStartX, yPos);
+					ctx.shadowBlur = 0;
+				});
+				
+				// Algorithme détecté - badge en bas
+				ctx.font = 'bold 10px sans-serif';
+				ctx.textAlign = 'center';
+				const algoY = cy + cr + 25;
+				
+				ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+				ctx.fillRect(cx - 70, algoY - 8, 140, 16);
+				
+				ctx.fillStyle = `rgba(100, 255, 200, ${mathOpacity})`;
+				ctx.shadowBlur = 8;
+				ctx.shadowColor = 'rgba(100, 255, 200, 0.8)';
+				ctx.fillText('CIRCLE DETECTION ACTIVE', cx, algoY);
+				ctx.shadowBlur = 0;
+				
+				// Coordonnées polaires animées sur le cercle
+				if ($detectedPositions && $detectedPositions.length > 0) {
+					const showIdx = Math.floor(radarTime * 2) % $detectedPositions.length;
+					const pos = $detectedPositions[showIdx];
+					const ang = pos.angle;
+					const polarX = cx + Math.cos(ang) * cr * 1.3;
+					const polarY = cy + Math.sin(ang) * cr * 1.3;
+					
+					ctx.font = '9px monospace';
+					ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+					ctx.fillRect(polarX - 25, polarY - 8, 50, 16);
+					
+					ctx.fillStyle = 'rgba(255, 255, 100, 0.9)';
+					ctx.textAlign = 'center';
+					ctx.fillText(`θ=${Math.round(ang * 180 / Math.PI)}°`, polarX, polarY);
+				}
+				
+				// Retro particles with alternating colors along the circle
+				for (let i = 0; i < 16; i++) {
+					const particleAngle = (i / 16) * Math.PI * 2 + radarTime * 0.3;
+					const particleDist = cr + Math.sin(radarTime * 2 + i) * 6;
+					const px = cx + Math.cos(particleAngle) * particleDist;
+					const py = cy + Math.sin(particleAngle) * particleDist;
+					const particleSize = 2.5 + Math.sin(radarTime * 3 + i * 0.5) * 1.5;
+					
+					// Alternate colors: cyan, magenta, yellow
+					const colorIndex = i % 3;
+					const colors = [
+						'rgba(0, 255, 255, ',     // Cyan
+						'rgba(255, 0, 255, ',     // Magenta  
+						'rgba(255, 255, 0, '      // Yellow
+					];
+					const opacity = 0.7 + Math.sin(radarTime * 4 + i) * 0.3;
+					
+					ctx.beginPath();
+					ctx.arc(px, py, particleSize, 0, Math.PI * 2);
+					ctx.fillStyle = colors[colorIndex] + opacity + ')';
+					ctx.shadowBlur = 12;
+					ctx.shadowColor = colors[colorIndex] + '0.9)';
+					ctx.fill();
+					ctx.shadowBlur = 0;
+				}
+
+				// Main circle with vibrant retro colors (magenta to cyan gradient)
+				const circleGradient = ctx.createLinearGradient(cx - cr, cy, cx + cr, cy);
+				circleGradient.addColorStop(0, 'rgba(255, 0, 255, 0.9)');
+				circleGradient.addColorStop(0.5, 'rgba(255, 255, 0, 0.9)');
+				circleGradient.addColorStop(1, 'rgba(0, 255, 255, 0.9)');
+				
+				ctx.beginPath();
+				ctx.lineWidth = 3;
+				ctx.strokeStyle = circleGradient;
+				ctx.shadowBlur = 15;
+				ctx.shadowColor = 'rgba(255, 0, 255, 0.7)';
 				ctx.arc(cx, cy, cr, 0, Math.PI * 2);
 				ctx.stroke();
+				ctx.shadowBlur = 0;
 
-				// draw crosshair at circle center
-				ctx.strokeStyle = 'rgba(255,160,0,0.85)';
-				ctx.lineWidth = Math.max(2, 2);
+				// Draw crosshair at circle center with retro cyan/magenta
+				ctx.lineWidth = 3;
+				ctx.shadowBlur = 12;
 				const crossSize = Math.max(15, cr * 0.15);
+				
+				// Horizontal line (cyan)
 				ctx.beginPath();
+				ctx.strokeStyle = 'rgba(0, 255, 255, 0.95)';
+				ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
 				ctx.moveTo(cx - crossSize, cy);
 				ctx.lineTo(cx + crossSize, cy);
 				ctx.stroke();
+				
+				// Vertical line (magenta)
 				ctx.beginPath();
+				ctx.strokeStyle = 'rgba(255, 0, 255, 0.95)';
+				ctx.shadowColor = 'rgba(255, 0, 255, 0.8)';
 				ctx.moveTo(cx, cy - crossSize);
 				ctx.lineTo(cx, cy + crossSize);
 				ctx.stroke();
+				ctx.shadowBlur = 0;
 
-				// draw positions as small ticks if available
+				// Draw positions with rainbow retro colors
 				if ($detectedPositions && $detectedPositions.length) {
-					ctx.fillStyle = 'rgba(0,200,255,0.9)';
-					for (const p of $detectedPositions) {
+					const posCount = $detectedPositions.length;
+					for (let i = 0; i < posCount; i++) {
+						const p = $detectedPositions[i];
 						const ang = p.angle; // radians
 						const px = cx + Math.cos(ang) * cr;
 						const py = cy + Math.sin(ang) * cr;
+						
+						// Pulsing effect for each position
+						const positionPulse = 0.8 + Math.sin(radarTime * 3 + ang) * 0.2;
+						
+						// Rainbow color based on position
+						const hue = (i / posCount) * 360;
+						const color = `hsl(${hue}, 100%, 60%)`;
+						
 						ctx.beginPath();
-						ctx.arc(px, py, Math.max(2, Math.round(cr * 0.03)), 0, Math.PI * 2);
+						ctx.arc(px, py, Math.max(3, Math.round(cr * 0.04)) * positionPulse, 0, Math.PI * 2);
+						ctx.fillStyle = color;
+						ctx.shadowBlur = 15;
+						ctx.shadowColor = color;
 						ctx.fill();
+						ctx.shadowBlur = 0;
 					}
 				}
 			} catch (e) {
@@ -672,6 +897,47 @@
 					ctx.fillRect(-cw, -ch, cw * 3, ch * 3);
 				}
 			}
+			
+			// Frequency indicator (small, discrete badge)
+			ctx.save();
+			ctx.translate(cw / 2, ch / 2);
+			
+			// Position in top-left corner (visible when scrolling)
+			const badgeX = -cw / 2 + 15;
+			const badgeY = -ch / 2 + 15;
+			
+			// Determine color based on frequency
+			let badgeColor, label;
+			if ($flickerFrequency < 50) {
+				badgeColor = 'rgba(255, 100, 100, 0.9)'; // Red - strong flicker
+				label = 'FLICKER';
+			} else if ($flickerFrequency < 60) {
+				badgeColor = 'rgba(255, 180, 50, 0.9)'; // Orange - threshold
+				label = 'THRESHOLD';
+			} else {
+				badgeColor = 'rgba(100, 220, 100, 0.9)'; // Green - fused
+				label = 'FUSED';
+			}
+			
+			// Background badge
+			ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+			ctx.beginPath();
+			ctx.roundRect(badgeX, badgeY, 85, 18, 4);
+			ctx.fill();
+			
+			// Frequency text
+			ctx.font = 'bold 11px monospace';
+			ctx.fillStyle = badgeColor;
+			ctx.textAlign = 'left';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(`${$flickerFrequency}Hz`, badgeX + 5, badgeY + 9);
+			
+			// Status label
+			ctx.font = '9px sans-serif';
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+			ctx.fillText(label, badgeX + 42, badgeY + 9);
+			
+			ctx.restore();
 		}
 
 		ctx.restore();
@@ -813,6 +1079,14 @@
 		height: 300px;
 		position: relative;
 		transition: border 0.3s ease;
+	}
+	
+	/* Mobile: augmenter la hauteur pour mieux voir l'image */
+	@media (max-width: 768px) {
+		.canvas-wrapper {
+			height: 90vw;
+			max-height: 600px;
+		}
 	}
 	
 	.canvas-wrapper.edit-mode {

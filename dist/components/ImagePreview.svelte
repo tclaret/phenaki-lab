@@ -14,8 +14,8 @@
   .preview {
     margin-top: 10px;
     border: 1px solid #333;
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
     display: flex;
     justify-content: center;
     align-items: center;
