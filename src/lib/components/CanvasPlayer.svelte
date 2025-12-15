@@ -943,7 +943,7 @@
 
 <div class="canvas-wrapper {$editMode ? 'edit-mode' : ''}" bind:this={wrapper}>
 	<canvas bind:this={canvas}></canvas>
-	{#if showSpeedHUD}
+	{#if showSpeedHUD || $isMobile}
 		<div class="speed-hud">Speed: {$rotationSpeed.toFixed(0)}°/s</div>
 	{/if}
 	{#if $editMode}
@@ -1031,17 +1031,17 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		z-index: 10;
+		z-index: 5;
 	}
 	
 	/* Mobile responsive adjustments */
 	@media (max-width: 600px) {
 		.speed-hud {
-			font-size: 14px;
-			padding: 8px 12px;
+			font-size: 12px;
+			padding: 6px 10px;
 			right: 4px;
 			top: 4px;
-			max-width: calc(100% - 8px);
+			max-width: 120px;
 		}
 	}
 	

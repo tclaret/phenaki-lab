@@ -504,84 +504,63 @@
 				const cy = (c.y - htmlImg.height / 2) * scaleImg;
 				const cr = c.r * scaleImg;
 
-				// Retro-futuristic radar animation
-				const radarTime = Date.now() / 1000; // seconds
-				const radarAngle = (radarTime * Math.PI * 0.5) % (Math.PI * 2); // Slow rotation
+				// Retro-futuristic radar animation (optimisé)
+				const radarTime = Date.now() / 1000;
+				const radarAngle = (radarTime * Math.PI * 0.5) % (Math.PI * 2);
 				
-				// Pulsing retro-futuristic color rings (cyan, magenta, yellow)
-				const retroColors = [
-					{ r: 0, g: 255, b: 255 },     // Cyan
-					{ r: 255, g: 0, b: 255 },     // Magenta
-					{ r: 255, g: 255, b: 0 }      // Yellow
-				];
+				// Un seul anneau pulsant (optimisé)
+				const pulsePhase = (radarTime * 0.8) % 2;
+				const pulseRadius = cr * (0.8 + pulsePhase * 0.4);
+				const pulseOpacity = Math.max(0, 0.3 * (1 - pulsePhase / 2));
 				
-				for (let i = 0; i < 3; i++) {
-					const pulsePhase = (radarTime * 0.8 + i * 0.5) % 2;
-					const pulseRadius = cr * (0.8 + pulsePhase * 0.4);
-					const pulseOpacity = Math.max(0, 0.4 * (1 - pulsePhase / 2));
-					const color = retroColors[i];
-					
-					ctx.beginPath();
-					ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${pulseOpacity})`;
-					ctx.lineWidth = 4;
-					ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
-					ctx.stroke();
-					
-					// Add vibrant glow effect
-					ctx.shadowBlur = 20;
-					ctx.shadowColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${pulseOpacity * 0.9})`;
-					ctx.stroke();
-					ctx.shadowBlur = 0;
-				}
+				ctx.beginPath();
+				ctx.strokeStyle = `rgba(0, 255, 255, ${pulseOpacity})`;
+				ctx.lineWidth = 2;
+				ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
+				ctx.stroke();
 				
-				// Rotating radar sweep with retro gradient (cyan to magenta)
-				const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, cr);
-				gradient.addColorStop(0, 'rgba(255, 0, 255, 0.5)');      // Magenta center
-				gradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.3)');    // Cyan middle
-				gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');        // Fade to magenta
-				
+				// Balayage radar simplifié (sans gradient coûteux)
 				ctx.save();
 				ctx.translate(cx, cy);
 				ctx.rotate(radarAngle);
+				ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+				ctx.lineWidth = 2;
 				ctx.beginPath();
 				ctx.moveTo(0, 0);
-				ctx.arc(0, 0, cr * 1.1, 0, Math.PI * 0.4);
-				ctx.lineTo(0, 0);
-				ctx.fillStyle = gradient;
-				ctx.fill();
+				ctx.lineTo(cr * 1.1, 0);
+				ctx.stroke();
 				ctx.restore();
 				
-				// Grid lines for retro effect (optional radial lines)
-				ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+				// Grille simplifiée (8 lignes au lieu de 12)
+				ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
 				ctx.lineWidth = 1;
-				for (let i = 0; i < 12; i++) {
-					const gridAngle = (i / 12) * Math.PI * 2;
+				for (let i = 0; i < 8; i++) {
+					const gridAngle = (i / 8) * Math.PI * 2;
 					ctx.beginPath();
 					ctx.moveTo(cx, cy);
 					ctx.lineTo(cx + Math.cos(gridAngle) * cr, cy + Math.sin(gridAngle) * cr);
 					ctx.stroke();
 					
-					// Afficher les angles tous les 90 degrés
-					if (i % 3 === 0) {
+					// Angles tous les 90°
+					if (i % 2 === 0) {
 						const angleDeg = Math.round((gridAngle * 180 / Math.PI) % 360);
-						const labelDist = cr * 1.15;
+						const labelDist = cr * 1.12;
 						const lx = cx + Math.cos(gridAngle) * labelDist;
 						const ly = cy + Math.sin(gridAngle) * labelDist;
 						
 						ctx.font = 'bold 10px monospace';
-						ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+						ctx.fillStyle = 'rgba(0, 255, 255, 0.7)';
 						ctx.textAlign = 'center';
 						ctx.textBaseline = 'middle';
 						ctx.fillText(`${angleDeg}°`, lx, ly);
 					}
 				}
 				
-				// Affichage des calculs mathématiques - formules animées
-				const mathOpacity = 0.5 + Math.sin(radarTime * 2) * 0.2;
+				// Calculs mathématiques simplifiés (sans animation lourde)
+				const mathOpacity = 0.6;
 				ctx.font = '11px monospace';
 				ctx.textAlign = 'left';
 				
-				// Équations en haut à droite
 				const eqStartX = cx + cr * 0.3;
 				const eqStartY = cy - cr * 0.8;
 				const lineHeight = 14;
@@ -590,146 +569,71 @@
 					`r = ${Math.round(c.r)}px`,
 					`θ = ${Math.round((radarAngle * 180 / Math.PI) % 360)}°`,
 					`ω = ${$rotationSpeed}°/s`,
-					`sin(θ) = ${Math.sin(radarAngle).toFixed(3)}`,
-					`cos(θ) = ${Math.cos(radarAngle).toFixed(3)}`,
-					`n = ${$detectedCount || 0} frames`
+					`n = ${$detectedCount || 0}`
 				];
+				
+				// Fond unique pour toutes les équations
+				ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+				ctx.fillRect(eqStartX - 2, eqStartY - 8, 95, equations.length * lineHeight);
 				
 				equations.forEach((eq, idx) => {
 					const yPos = eqStartY + idx * lineHeight;
-					const phaseShift = idx * 0.3;
-					const opacity = (mathOpacity + Math.sin(radarTime * 3 + phaseShift) * 0.2) * 0.7;
-					
-					// Fond semi-transparent
-					ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-					ctx.fillRect(eqStartX - 2, yPos - 8, 95, 12);
-					
-					// Texte avec couleur alternée
 					const colors = ['rgba(0, 255, 255, ', 'rgba(255, 0, 255, ', 'rgba(255, 255, 0, '];
-					ctx.fillStyle = colors[idx % 3] + opacity + ')';
-					ctx.shadowBlur = 5;
-					ctx.shadowColor = colors[idx % 3] + '0.8)';
+					ctx.fillStyle = colors[idx % 3] + mathOpacity + ')';
 					ctx.fillText(eq, eqStartX, yPos);
-					ctx.shadowBlur = 0;
 				});
 				
-				// Algorithme détecté - badge en bas
+				// Badge simplifié
 				ctx.font = 'bold 10px sans-serif';
 				ctx.textAlign = 'center';
 				const algoY = cy + cr + 25;
 				
 				ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
 				ctx.fillRect(cx - 70, algoY - 8, 140, 16);
+				ctx.fillStyle = 'rgba(100, 255, 200, 0.8)';
+				ctx.fillText('CIRCLE DETECTION', cx, algoY);
 				
-				ctx.fillStyle = `rgba(100, 255, 200, ${mathOpacity})`;
-				ctx.shadowBlur = 8;
-				ctx.shadowColor = 'rgba(100, 255, 200, 0.8)';
-				ctx.fillText('CIRCLE DETECTION ACTIVE', cx, algoY);
-				ctx.shadowBlur = 0;
-				
-				// Coordonnées polaires animées sur le cercle
-				if ($detectedPositions && $detectedPositions.length > 0) {
-					const showIdx = Math.floor(radarTime * 2) % $detectedPositions.length;
-					const pos = $detectedPositions[showIdx];
-					const ang = pos.angle;
-					const polarX = cx + Math.cos(ang) * cr * 1.3;
-					const polarY = cy + Math.sin(ang) * cr * 1.3;
-					
-					ctx.font = '9px monospace';
-					ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-					ctx.fillRect(polarX - 25, polarY - 8, 50, 16);
-					
-					ctx.fillStyle = 'rgba(255, 255, 100, 0.9)';
-					ctx.textAlign = 'center';
-					ctx.fillText(`θ=${Math.round(ang * 180 / Math.PI)}°`, polarX, polarY);
-				}
-				
-				// Retro particles with alternating colors along the circle
-				for (let i = 0; i < 16; i++) {
-					const particleAngle = (i / 16) * Math.PI * 2 + radarTime * 0.3;
-					const particleDist = cr + Math.sin(radarTime * 2 + i) * 6;
-					const px = cx + Math.cos(particleAngle) * particleDist;
-					const py = cy + Math.sin(particleAngle) * particleDist;
-					const particleSize = 2.5 + Math.sin(radarTime * 3 + i * 0.5) * 1.5;
-					
-					// Alternate colors: cyan, magenta, yellow
-					const colorIndex = i % 3;
-					const colors = [
-						'rgba(0, 255, 255, ',     // Cyan
-						'rgba(255, 0, 255, ',     // Magenta  
-						'rgba(255, 255, 0, '      // Yellow
-					];
-					const opacity = 0.7 + Math.sin(radarTime * 4 + i) * 0.3;
+				// 6 particules au lieu de 16
+				for (let i = 0; i < 6; i++) {
+					const particleAngle = (i / 6) * Math.PI * 2 + radarTime * 0.3;
+					const px = cx + Math.cos(particleAngle) * cr;
+					const py = cy + Math.sin(particleAngle) * cr;
 					
 					ctx.beginPath();
-					ctx.arc(px, py, particleSize, 0, Math.PI * 2);
-					ctx.fillStyle = colors[colorIndex] + opacity + ')';
-					ctx.shadowBlur = 12;
-					ctx.shadowColor = colors[colorIndex] + '0.9)';
+					ctx.arc(px, py, 2, 0, Math.PI * 2);
+					ctx.fillStyle = i % 2 === 0 ? 'rgba(0, 255, 255, 0.8)' : 'rgba(255, 0, 255, 0.8)';
 					ctx.fill();
-					ctx.shadowBlur = 0;
 				}
 
-				// Main circle with vibrant retro colors (magenta to cyan gradient)
-				const circleGradient = ctx.createLinearGradient(cx - cr, cy, cx + cr, cy);
-				circleGradient.addColorStop(0, 'rgba(255, 0, 255, 0.9)');
-				circleGradient.addColorStop(0.5, 'rgba(255, 255, 0, 0.9)');
-				circleGradient.addColorStop(1, 'rgba(0, 255, 255, 0.9)');
-				
+				// Main circle simplifié (sans gradient coûteux)
 				ctx.beginPath();
-				ctx.lineWidth = 3;
-				ctx.strokeStyle = circleGradient;
-				ctx.shadowBlur = 15;
-				ctx.shadowColor = 'rgba(255, 0, 255, 0.7)';
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
 				ctx.arc(cx, cy, cr, 0, Math.PI * 2);
 				ctx.stroke();
-				ctx.shadowBlur = 0;
 
-				// Draw crosshair at circle center with retro cyan/magenta
-				ctx.lineWidth = 3;
-				ctx.shadowBlur = 12;
+				// Crosshair simplifié
+				ctx.lineWidth = 2;
 				const crossSize = Math.max(15, cr * 0.15);
 				
-				// Horizontal line (cyan)
 				ctx.beginPath();
-				ctx.strokeStyle = 'rgba(0, 255, 255, 0.95)';
-				ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+				ctx.strokeStyle = 'rgba(0, 255, 255, 0.9)';
 				ctx.moveTo(cx - crossSize, cy);
 				ctx.lineTo(cx + crossSize, cy);
-				ctx.stroke();
-				
-				// Vertical line (magenta)
-				ctx.beginPath();
-				ctx.strokeStyle = 'rgba(255, 0, 255, 0.95)';
-				ctx.shadowColor = 'rgba(255, 0, 255, 0.8)';
 				ctx.moveTo(cx, cy - crossSize);
 				ctx.lineTo(cx, cy + crossSize);
 				ctx.stroke();
-				ctx.shadowBlur = 0;
 
-				// Draw positions with rainbow retro colors
+				// Positions détectées simplifiées
 				if ($detectedPositions && $detectedPositions.length) {
-					const posCount = $detectedPositions.length;
-					for (let i = 0; i < posCount; i++) {
-						const p = $detectedPositions[i];
-						const ang = p.angle; // radians
+					ctx.fillStyle = 'rgba(255, 0, 255, 0.9)';
+					for (const p of $detectedPositions) {
+						const ang = p.angle;
 						const px = cx + Math.cos(ang) * cr;
 						const py = cy + Math.sin(ang) * cr;
-						
-						// Pulsing effect for each position
-						const positionPulse = 0.8 + Math.sin(radarTime * 3 + ang) * 0.2;
-						
-						// Rainbow color based on position
-						const hue = (i / posCount) * 360;
-						const color = `hsl(${hue}, 100%, 60%)`;
-						
 						ctx.beginPath();
-						ctx.arc(px, py, Math.max(3, Math.round(cr * 0.04)) * positionPulse, 0, Math.PI * 2);
-						ctx.fillStyle = color;
-						ctx.shadowBlur = 15;
-						ctx.shadowColor = color;
+						ctx.arc(px, py, 2.5, 0, Math.PI * 2);
 						ctx.fill();
-						ctx.shadowBlur = 0;
 					}
 				}
 			} catch (e) {
@@ -1039,7 +943,7 @@
 
 <div class="canvas-wrapper {$editMode ? 'edit-mode' : ''}" bind:this={wrapper}>
 	<canvas bind:this={canvas}></canvas>
-	{#if showSpeedHUD}
+	{#if showSpeedHUD || $isMobile}
 		<div class="speed-hud">Speed: {$rotationSpeed.toFixed(0)}°/s</div>
 	{/if}
 	{#if $editMode}
