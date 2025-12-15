@@ -785,7 +785,10 @@
 		<div class="frame-counter">
 			<button 
 				class="frame-btn"
-				on:click={() => gifFrameCount.set(Math.max(6, ($gifFrameCount || 12) - 1))}
+				on:click|stopPropagation={() => gifFrameCount.set(Math.max(6, ($gifFrameCount || 12) - 1))}
+				on:pointerdown|stopPropagation
+				on:pointermove|stopPropagation
+				on:pointerup|stopPropagation
 				title="Decrease frame count"
 			>−</button>
 			<div class="frame-display">
@@ -794,7 +797,10 @@
 			</div>
 			<button 
 				class="frame-btn"
-				on:click={() => gifFrameCount.set(Math.min(100, ($gifFrameCount || 12) + 1))}
+				on:click|stopPropagation={() => gifFrameCount.set(Math.min(100, ($gifFrameCount || 12) + 1))}
+				on:pointerdown|stopPropagation
+				on:pointermove|stopPropagation
+				on:pointerup|stopPropagation
 				title="Increase frame count"
 			>+</button>
 		</div>
@@ -890,7 +896,7 @@
 		border-radius: 12px;
 		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
 		border: 2px solid rgba(100, 200, 255, 0.5);
-		pointer-events: none;
+		pointer-events: auto;
 		z-index: 100;
 	}
 	
