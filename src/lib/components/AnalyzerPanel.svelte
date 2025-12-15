@@ -313,9 +313,12 @@
 		// don't start drag when clicking a button
 		if (e.target && e.target.closest && e.target.closest('button')) return;
 
-		// only drag if double-tapped or if dragging the handle
+		// only drag if double-tapped, dragging the handle, or on mobile always allow drag from handle
 		const isDraggingHandle = e.target && e.target.closest && e.target.closest('.drag-handle');
-		if (!isDoubleTap && !isDraggingHandle) return;
+		const isMobileDevice = $isMobile;
+		// On mobile: always allow drag from handle. On desktop: require double-tap or handle
+		if (!isDraggingHandle && !isDoubleTap && !isMobileDevice) return;
+		if (isMobileDevice && !isDraggingHandle) return;
 
 		dragMode = true;
 		dragging = true;
@@ -593,20 +596,28 @@
 
 	{#if $detectedCircle}
 		<div
-			class="speed-control {dragMode ? 'dragMode' : ''} {dragging ? 'dragging' : ''}"
+			class="speed-control {dragMode ? 'dragMode' : ''} {dragging ? 'dragging' : ''} {$isMobile ? 'mobile' : ''}"
 			on:pointerdown={onOverlayPointerDown}
 			style="left: {overlayPos.left ?? 16}px; top: {overlayPos.top ?? 16}px;"
 		>
-			{#if dragMode}
-				<div class="drag-handle" title="Drag to move"></div>
+			{#if dragMode || $isMobile}
+				<div class="drag-handle" title="Drag to move">⋮⋮</div>
 			{/if}
 			<div style="display:flex;gap:12px;align-items:center;">
-				<button class="speed-btn" on:click={decreaseSpeed}>−</button>
+				<button 
+					class="speed-btn" 
+					on:click|stopPropagation={decreaseSpeed}
+					on:pointerdown|stopPropagation
+				>−</button>
 				<div style="text-align:center;min-width:120px;">
 					<div class="speed-display">{$rotationSpeed.toFixed(0)}°/s</div>
 					<div style="font-size:11px;opacity:0.6;margin-top:4px;">Rotation Speed</div>
 				</div>
-				<button class="speed-btn" on:click={increaseSpeed}>+</button>
+				<button 
+					class="speed-btn" 
+					on:click|stopPropagation={increaseSpeed}
+					on:pointerdown|stopPropagation
+				>+</button>
 			</div>
 		</div>
 	{/if}
@@ -690,6 +701,31 @@
 			left: auto !important;
 			top: auto !important;
 			max-width: calc(100vw - 20px);
+			padding: 16px;
+		}
+
+		/* Always show drag handle on mobile */
+		.speed-control.mobile .drag-handle {
+			display: block;
+			width: 50px;
+			height: 6px;
+			background: #666;
+			border-radius: 3px;
+			margin-bottom: 12px;
+			cursor: grab;
+			font-size: 12px;
+			text-align: center;
+			line-height: 6px;
+			color: #999;
+			letter-spacing: 2px;
+		}
+
+		/* Larger buttons on mobile for easier touch */
+		.speed-control .speed-btn {
+			width: 70px;
+			height: 70px;
+			font-size: 32px;
+			min-height: unset;
 		}
 
 		/* Make buttons finger-friendly on mobile */
