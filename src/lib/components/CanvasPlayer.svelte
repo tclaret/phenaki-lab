@@ -7,6 +7,7 @@
 		rotationDirection,
 		detectedCircle,
 		detectedPositions,
+		detectedCount,
 		overlayVisible,
 		playerCanvas,
 		detectionAnimation,
@@ -15,7 +16,8 @@
 		editMode,
 		confirmedDetection,
 		canvasTransform,
-		isMobile
+		isMobile,
+		gifFrameCount
 	} from '$lib/store';
 
 	let wrapper;
@@ -73,6 +75,11 @@
 		// clear
 		if (htmlImg) htmlImg = null;
 		imageReady = false;
+		drawFrame();
+	}
+
+	// Redraw when gifFrameCount changes (to update pie slices in edit mode)
+	$: if ($gifFrameCount !== undefined) {
 		drawFrame();
 	}
 
@@ -678,6 +685,48 @@
 			ctx.save();
 			ctx.translate(cw / 2, ch / 2);
 
+			// Draw "pie slices" in edit mode based on user-entered frame count
+			// Use gifFrameCount if set, otherwise fall back to detectedCount, with minimum of 6
+			const sliceCount = $gifFrameCount || $detectedCount || 12;
+			if ($editMode && sliceCount > 0) {
+				const sliceRadius = Math.min(cw, ch) * 0.3;
+				const angleStep = (Math.PI * 2) / sliceCount;
+				
+				// Draw pie slices
+				for (let i = 0; i < sliceCount; i++) {
+					const startAngle = i * angleStep - Math.PI / 2; // Start from top
+					const endAngle = startAngle + angleStep;
+					
+					// Alternating colors for each slice
+					const sliceAlpha = 0.15 + 0.1 * ((i % 2) * 0.5);
+					ctx.fillStyle = `rgba(100, 200, 255, ${sliceAlpha})`;
+					
+					ctx.beginPath();
+					ctx.moveTo(0, 0);
+					ctx.arc(0, 0, sliceRadius, startAngle, endAngle);
+					ctx.closePath();
+					ctx.fill();
+					
+					// Draw slice borders
+					ctx.strokeStyle = `rgba(100, 200, 255, ${0.4 * pulseAlpha})`;
+					ctx.lineWidth = 2;
+					ctx.beginPath();
+					ctx.moveTo(0, 0);
+					ctx.lineTo(
+						Math.cos(startAngle) * sliceRadius,
+						Math.sin(startAngle) * sliceRadius
+					);
+					ctx.stroke();
+				}
+				
+				// Outer circle for the pie
+				ctx.strokeStyle = `rgba(100, 200, 255, ${0.5 * pulseAlpha})`;
+				ctx.lineWidth = 3;
+				ctx.beginPath();
+				ctx.arc(0, 0, sliceRadius, 0, Math.PI * 2);
+				ctx.stroke();
+			}
+
 			ctx.strokeStyle = `rgba(255, 100, 0, ${pulseAlpha})`;
 			ctx.lineWidth = 4;
 			const crossSize = Math.min(cw, ch) * 0.1;
@@ -730,6 +779,24 @@
 	{#if $editMode}
 		<div class="edit-mode-indicator">
 			⚙️ EDIT MODE - Drag to position • Scroll to zoom
+		</div>
+		
+		<!-- Frame count adjuster overlay -->
+		<div class="frame-counter">
+			<button 
+				class="frame-btn"
+				on:click={() => gifFrameCount.set(Math.max(6, ($gifFrameCount || 12) - 1))}
+				title="Decrease frame count"
+			>−</button>
+			<div class="frame-display">
+				<div class="frame-number">{$gifFrameCount || 12}</div>
+				<div class="frame-label">frames</div>
+			</div>
+			<button 
+				class="frame-btn"
+				on:click={() => gifFrameCount.set(Math.min(100, ($gifFrameCount || 12) + 1))}
+				title="Increase frame count"
+			>+</button>
 		</div>
 	{/if}
 </div>
@@ -808,6 +875,75 @@
 		pointer-events: none;
 		box-shadow: 0 2px 12px rgba(255, 100, 0, 0.6);
 		animation: pulse 2s ease-in-out infinite;
+	}
+	
+	.frame-counter {
+		position: absolute;
+		bottom: 12px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		background: rgba(20, 20, 20, 0.95);
+		padding: 12px 16px;
+		border-radius: 12px;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+		border: 2px solid rgba(100, 200, 255, 0.5);
+		pointer-events: none;
+		z-index: 100;
+	}
+	
+	.frame-btn {
+		width: 44px;
+		height: 44px;
+		background: linear-gradient(135deg, #4a9eff 0%, #357abd 100%);
+		color: white;
+		border: none;
+		border-radius: 8px;
+		font-size: 28px;
+		font-weight: bold;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		line-height: 1;
+		padding: 0;
+		pointer-events: auto;
+	}
+	
+	.frame-btn:hover {
+		background: linear-gradient(135deg, #5aaeff 0%, #4a8dcd 100%);
+		transform: scale(1.05);
+		box-shadow: 0 4px 12px rgba(74, 158, 255, 0.5);
+	}
+	
+	.frame-btn:active {
+		transform: scale(0.95);
+	}
+	
+	.frame-display {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		min-width: 70px;
+	}
+	
+	.frame-number {
+		font-size: 32px;
+		font-weight: bold;
+		color: #4a9eff;
+		line-height: 1;
+		margin-bottom: 2px;
+	}
+	
+	.frame-label {
+		font-size: 11px;
+		color: rgba(255, 255, 255, 0.6);
+		text-transform: uppercase;
+		letter-spacing: 1px;
 	}
 	
 	@keyframes pulse {

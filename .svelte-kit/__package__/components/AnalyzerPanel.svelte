@@ -16,7 +16,8 @@
 		canvasTransform,
 		isMobile,
 		flickerEnabled,
-		flickerFrequency
+		flickerFrequency,
+		gifFrameCount
 	} from '../store';
 	// also import detectedPositions which is set by runDetection
 	import { detectedPositions } from '../store';
@@ -275,8 +276,9 @@
 		}
 	}
 
-	// allow user override for GIF frame count
-	let optsGifCount = null; // null means auto-detect
+	// Frame count is now managed by the gifFrameCount store for real-time visualization
+	// Sync local reactive variable with store
+	$: optsGifCount = $gifFrameCount;
 
 	// draggable overlay position (persist in localStorage)
 	const POS_KEY = 'phenaki.speedControlPos';
@@ -440,7 +442,8 @@
 					min="6"
 					step="1"
 					placeholder={_detectedCount ? `Auto (${_detectedCount * 2})` : 'Auto (24)'}
-					bind:value={optsGifCount}
+					value={$gifFrameCount}
+					on:input={(e) => gifFrameCount.set(e.target.value ? Number(e.target.value) : null)}
 					style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;"
 				/>
 				<span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection">
@@ -687,6 +690,28 @@
 			left: auto !important;
 			top: auto !important;
 			max-width: calc(100vw - 20px);
+		}
+
+		/* Make buttons finger-friendly on mobile */
+		button {
+			min-height: 44px;
+			padding: 10px 16px;
+			font-size: 16px;
+		}
+
+		.gif-export-group {
+			gap: 12px;
+		}
+
+		.gif-export-group button {
+			min-height: 44px;
+			padding: 10px 20px;
+		}
+
+		.gif-export-group input,
+		.gif-export-group select {
+			min-height: 44px;
+			font-size: 16px;
 		}
 	}
 	.speed-control.dragMode {

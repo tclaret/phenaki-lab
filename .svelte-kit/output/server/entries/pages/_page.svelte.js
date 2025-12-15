@@ -33,6 +33,7 @@ const playerCanvas = writable(null);
 const flickerEnabled = writable(false);
 const flickerFrequency = writable(50);
 const isMobile = writable(false);
+const gifFrameCount = writable(null);
 function FileUploader($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     $$renderer2.push(`<label>Choose image: <input type="file" accept="image/*"/></label>`);
@@ -293,6 +294,33 @@ function CanvasPlayer($$renderer, $$props) {
         const pulseAlpha = 0.7 + 0.3 * Math.sin(pulsePhase * Math.PI * 2);
         ctx.save();
         ctx.translate(cw / 2, ch / 2);
+        const sliceCount = store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || store_get($$store_subs ??= {}, "$detectedCount", detectedCount) || 12;
+        if (store_get($$store_subs ??= {}, "$editMode", editMode) && sliceCount > 0) {
+          const sliceRadius = Math.min(cw, ch) * 0.3;
+          const angleStep = Math.PI * 2 / sliceCount;
+          for (let i = 0; i < sliceCount; i++) {
+            const startAngle = i * angleStep - Math.PI / 2;
+            const endAngle = startAngle + angleStep;
+            const sliceAlpha = 0.15 + 0.1 * (i % 2 * 0.5);
+            ctx.fillStyle = `rgba(100, 200, 255, ${sliceAlpha})`;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, sliceRadius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = `rgba(100, 200, 255, ${0.4 * pulseAlpha})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(startAngle) * sliceRadius, Math.sin(startAngle) * sliceRadius);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = `rgba(100, 200, 255, ${0.5 * pulseAlpha})`;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, sliceRadius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
         ctx.strokeStyle = `rgba(255, 100, 0, ${pulseAlpha})`;
         ctx.lineWidth = 4;
         const crossSize = Math.min(cw, ch) * 0.1;
@@ -337,6 +365,9 @@ function CanvasPlayer($$renderer, $$props) {
     } else {
       if (htmlImg) htmlImg = null;
       imageReady = false;
+      drawFrame();
+    }
+    if (store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) !== void 0) {
       drawFrame();
     }
     {
@@ -410,6 +441,13 @@ function CanvasPlayer($$renderer, $$props) {
         // Display center crosshair in edit mode OR after confirmed detection (AFTER restore, so it stays fixed)
         // 0 to 1 every second
         // Draw in canvas coordinates (center of viewport)
+        // Draw "pie slices" in edit mode based on user-entered frame count
+        // Use gifFrameCount if set, otherwise fall back to detectedCount, with minimum of 6
+        // Draw pie slices
+        // Start from top
+        // Alternating colors for each slice
+        // Draw slice borders
+        // Outer circle for the pie
         // Outer circle (pulsing)
         // Horizontal line
         // Vertical line
@@ -426,7 +464,7 @@ function CanvasPlayer($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="edit-mode-indicator svelte-byh4af">⚙️ EDIT MODE - Drag to position • Scroll to zoom</div>`);
+      $$renderer2.push(`<div class="edit-mode-indicator svelte-byh4af">⚙️ EDIT MODE - Drag to position • Scroll to zoom</div> <div class="frame-counter svelte-byh4af"><button class="frame-btn svelte-byh4af" title="Decrease frame count">−</button> <div class="frame-display svelte-byh4af"><div class="frame-number svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || 12)}</div> <div class="frame-label svelte-byh4af">frames</div></div> <button class="frame-btn svelte-byh4af" title="Increase frame count">+</button></div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -437,12 +475,12 @@ function CanvasPlayer($$renderer, $$props) {
 function AnalyzerPanel($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
-    let _detectedCircle, _detectedCount, _suggested, _overlay;
+    let optsGifCount, _detectedCircle, _detectedCount, _suggested, _overlay;
     let busy = false;
     let manualSpeed = 0;
     let gifFps = 15;
-    let optsGifCount = null;
     manualSpeed = Number(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0);
+    optsGifCount = store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount);
     _detectedCircle = store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle);
     _detectedCount = store_get($$store_subs ??= {}, "$detectedCount", detectedCount);
     _suggested = store_get($$store_subs ??= {}, "$suggestedRotationSpeed", suggestedRotationSpeed);
@@ -461,8 +499,11 @@ function AnalyzerPanel($$renderer, $$props) {
       $$renderer2.push("<!--[!-->");
       $$renderer2.push(`<button${attr_class(clsx(!_detectedCircle ? "detect-btn-required" : ""), "svelte-14nyow8")}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl), true)}>Detect Circle &amp; Count</button>`);
     }
-    $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <div class="gif-export-group svelte-14nyow8"><button${attr("disabled", !store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas), true)} class="svelte-14nyow8">${escape_html("Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="6" step="1"${attr("placeholder", _detectedCount ? `Auto (${_detectedCount * 2})` : "Auto (24)")}${attr("value", optsGifCount)} style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection" class="svelte-14nyow8">`);
-    {
+    $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <div class="gif-export-group svelte-14nyow8"><button${attr("disabled", !store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas), true)} class="svelte-14nyow8">${escape_html("Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="6" step="1"${attr("placeholder", _detectedCount ? `Auto (${_detectedCount * 2})` : "Auto (24)")}${attr("value", store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount))} style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection" class="svelte-14nyow8">`);
+    if (optsGifCount) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`Manual`);
+    } else {
       $$renderer2.push("<!--[!-->");
       if (_detectedCount) {
         $$renderer2.push("<!--[-->");

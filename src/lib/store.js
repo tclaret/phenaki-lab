@@ -11,7 +11,7 @@ export const isPlaying = writable(false);
 // rotationSpeed: degrees per second (time-based)
 // Default is faster so spinning feels immediate on phones
 export const rotationSpeed = writable(360);
-export const rotationDirection = writable(-1);
+export const rotationDirection = writable(1);
 
 // Detected circle metadata (from analyzer)
 export const detectedCircle = writable(null); // { x,y,r }
@@ -59,3 +59,6 @@ export const flickerFrequency = writable(50); // Hz (flashes per second) - range
 
 // Mobile detection - detect if device is mobile/tablet based on screen width and touch support
 export const isMobile = writable(false);
+
+// User-defined frame count for GIF export (null = auto-detect)
+export const gifFrameCount = writable(null);

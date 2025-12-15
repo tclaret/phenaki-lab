@@ -59,3 +59,6 @@ export const flickerFrequency = writable(50); // Hz (flashes per second) - range
 
 // Mobile detection - detect if device is mobile/tablet based on screen width and touch support
 export const isMobile = writable(false);
+
+// User-defined frame count for GIF export (null = auto-detect)
+export const gifFrameCount = writable(null);

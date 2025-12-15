@@ -30,3 +30,4 @@ export const params: import("svelte/store").Writable<{
 export const flickerEnabled: import("svelte/store").Writable<boolean>;
 export const flickerFrequency: import("svelte/store").Writable<number>;
 export const isMobile: import("svelte/store").Writable<boolean>;
+export const gifFrameCount: import("svelte/store").Writable<null>;

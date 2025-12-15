@@ -84,13 +84,13 @@ declare module '$env/static/private' {
 	export const XDG_CURRENT_DESKTOP: string;
 	export const npm_package_version: string;
 	export const MEMORY_PRESSURE_WATCH: string;
+	export const VTE_VERSION: string;
 	export const WAYLAND_DISPLAY: string;
 	export const GUESTFISH_PS1: string;
 	export const GIT_ASKPASS: string;
+	export const GNOME_TERMINAL_SCREEN: string;
 	export const PERL5LIB: string;
-	export const INVOCATION_ID: string;
 	export const pnpm_config_verify_deps_before_run: string;
-	export const MANAGERPID: string;
 	export const IMSETTINGS_MODULE: string;
 	export const INIT_CWD: string;
 	export const CHROME_DESKTOP: string;
@@ -112,6 +112,7 @@ declare module '$env/static/private' {
 	export const npm_config_frozen_lockfile: string;
 	export const LIBRARY_PATH: string;
 	export const VSCODE_GIT_IPC_HANDLE: string;
+	export const GNOME_TERMINAL_SERVICE: string;
 	export const MODULES_RUN_QUARANTINE: string;
 	export const QT_WAYLAND_RECONNECT: string;
 	export const KDE_SESSION_VERSION: string;
@@ -146,7 +147,6 @@ declare module '$env/static/private' {
 	export const KDEDIRS: string;
 	export const VSCODE_GIT_ASKPASS_MAIN: string;
 	export const QT_AUTO_SCREEN_SCALE_FACTOR: string;
-	export const JOURNAL_STREAM: string;
 	export const XDG_DATA_DIRS: string;
 	export const PERL_LOCAL_LIB_ROOT: string;
 	export const GDK_BACKEND: string;
@@ -260,13 +260,13 @@ declare module '$env/dynamic/private' {
 		XDG_CURRENT_DESKTOP: string;
 		npm_package_version: string;
 		MEMORY_PRESSURE_WATCH: string;
+		VTE_VERSION: string;
 		WAYLAND_DISPLAY: string;
 		GUESTFISH_PS1: string;
 		GIT_ASKPASS: string;
+		GNOME_TERMINAL_SCREEN: string;
 		PERL5LIB: string;
-		INVOCATION_ID: string;
 		pnpm_config_verify_deps_before_run: string;
-		MANAGERPID: string;
 		IMSETTINGS_MODULE: string;
 		INIT_CWD: string;
 		CHROME_DESKTOP: string;
@@ -288,6 +288,7 @@ declare module '$env/dynamic/private' {
 		npm_config_frozen_lockfile: string;
 		LIBRARY_PATH: string;
 		VSCODE_GIT_IPC_HANDLE: string;
+		GNOME_TERMINAL_SERVICE: string;
 		MODULES_RUN_QUARANTINE: string;
 		QT_WAYLAND_RECONNECT: string;
 		KDE_SESSION_VERSION: string;
@@ -322,7 +323,6 @@ declare module '$env/dynamic/private' {
 		KDEDIRS: string;
 		VSCODE_GIT_ASKPASS_MAIN: string;
 		QT_AUTO_SCREEN_SCALE_FACTOR: string;
-		JOURNAL_STREAM: string;
 		XDG_DATA_DIRS: string;
 		PERL_LOCAL_LIB_ROOT: string;
 		GDK_BACKEND: string;
