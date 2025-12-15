@@ -264,7 +264,9 @@
 			const urlGif = await exportGif(frames, gifFps);
 			const a = document.createElement('a');
 			a.href = urlGif;
-			a.download = 'phenaki-export.gif';
+			// Nom de fichier avec timestamp et source
+			const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+			a.download = `phenaki-lab_${timestamp}_${frames.length}frames_${gifFps}fps.gif`;
 			document.body.appendChild(a);
 			a.click();
 			a.remove();
