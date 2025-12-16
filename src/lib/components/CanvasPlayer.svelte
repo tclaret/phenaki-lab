@@ -1076,6 +1076,9 @@
 		border: 2px solid rgba(100, 200, 255, 0.5);
 		pointer-events: auto;
 		z-index: 100;
+		/* Prevent zoom on mobile when interacting with controls */
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
 	}
 	
 	.frame-btn {
@@ -1096,6 +1099,12 @@
 		line-height: 1;
 		padding: 0;
 		pointer-events: auto;
+		/* Prevent zoom and improve touch interaction on mobile */
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		user-select: none;
 	}
 	
 	.frame-btn:hover {
@@ -1128,6 +1137,28 @@
 		color: rgba(255, 255, 255, 0.6);
 		text-transform: uppercase;
 		letter-spacing: 1px;
+	}
+	
+	/* Mobile optimizations for better touch interaction */
+	@media (max-width: 768px) {
+		.frame-counter {
+			padding: 16px 20px;
+			gap: 16px;
+		}
+		
+		.frame-btn {
+			width: 52px;
+			height: 52px;
+			font-size: 32px;
+		}
+		
+		.frame-display {
+			min-width: 80px;
+		}
+		
+		.frame-number {
+			font-size: 36px;
+		}
 	}
 	
 	@keyframes pulse {
