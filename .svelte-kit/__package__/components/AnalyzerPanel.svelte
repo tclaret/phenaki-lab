@@ -17,7 +17,8 @@
 		isMobile,
 		flickerEnabled,
 		flickerFrequency,
-		gifFrameCount
+		gifFrameCount,
+		userAdjustedSpeed
 	} from '../store';
 	// also import detectedPositions which is set by runDetection
 	import { detectedPositions } from '../store';
@@ -29,6 +30,32 @@
 	import { exportGif } from '../image/gifExport';
 
 	let busy = false;
+	
+	// Track user interactions for enabling GIF save
+	let hasPlayed = false;
+
+	// Watch for play state to track if user has played
+	$: if ($isPlaying) {
+		hasPlayed = true;
+	}
+
+	// Determine if GIF save should be enabled
+	// Simplified: just need detection confirmed, playing, and non-zero speed
+	$: canSaveGif = $detectedCircle && $confirmedDetection && $isPlaying && $rotationSpeed > 0 && $playerCanvas;
+
+	// Debug: log conditions
+	$: {
+		console.log('GIF Save Conditions:', {
+			detectedCircle: !!$detectedCircle,
+			confirmedDetection: $confirmedDetection,
+			hasPlayed,
+			userAdjustedSpeed: $userAdjustedSpeed,
+			playerCanvas: !!$playerCanvas,
+			isPlaying: $isPlaying,
+			rotationSpeed: $rotationSpeed,
+			canSaveGif
+		});
+	}
 
 	async function togglePlay() {
 		isPlaying.update((v) => !v);
@@ -36,10 +63,12 @@
 
 	function increaseSpeed() {
 		rotationSpeed.update((v) => Math.min(10000, v + 60));
+		userAdjustedSpeed.set(true);
 	}
 
 	function decreaseSpeed() {
 		rotationSpeed.update((v) => Math.max(10, v - 60));
+		userAdjustedSpeed.set(true);
 	}
 
 	function reverseDir() {
@@ -179,7 +208,10 @@
 
 	function applySuggestedSpeed() {
 		suggestedRotationSpeed.subscribe((s) => {
-			if (s) rotationSpeed.set(s);
+			if (s) {
+				rotationSpeed.set(s);
+				userAdjustedSpeed.set(true);
+			}
 		})();
 	}
 
@@ -200,6 +232,7 @@
 
 	function applyManualSpeed() {
 		const v = Number(manualSpeed) || 0;
+		hasAdjustedSpeed = true;
 		if (v <= 0) return;
 		rotationSpeed.set(v);
 	}
@@ -437,8 +470,8 @@
 		
 		<!-- GIF Export Group -->
 		<div class="gif-export-group">
-			<button on:click={saveGif} disabled={exporting || !$playerCanvas}
-				>{exporting ? 'Exporting...' : 'Save GIF'}</button
+			<button class="save-gif-btn" on:click={saveGif} disabled={!canSaveGif || exporting}
+				>{exporting ? '⏳ Exporting...' : '💾 Save GIF'}</button
 			>
 			<label style="display:flex;align-items:center;gap:6px;">
 				<span style="font-size:12px;opacity:0.8;">Frames:</span>
@@ -467,7 +500,10 @@
 					bind:value={gifFps}
 					style="padding:4px;border-radius:4px;border:1px solid #ccc;background:#333;color:white;"
 				>
-					<option value={10}>10 (Slow/Classic)</option>
+					<option value={3}>3 (Ultra Slow)</option>
+					<option value={5}>5 (Very Slow)</option>
+					<option value={8}>8 (Slow)</option>
+					<option value={10}>10 (Classic)</option>
 					<option value={15}>15 (Natural)</option>
 					<option value={20}>20 (Smooth)</option>
 					<option value={24}>24 (Cinema)</option>
@@ -501,35 +537,54 @@
 	<!-- Flicker Fusion Threshold Controls -->
 	{#if $flickerEnabled}
 		<div style="margin-top: 16px; padding: 12px; background: rgba(74, 158, 255, 0.08); border-radius: 6px; border: 1px solid rgba(74, 158, 255, 0.2);">
-			<div style="font-weight: 600; margin-bottom: 10px; color: #4a9eff; font-size: 0.95em;">⚡ Flicker Fusion Threshold</div>
+			<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+				<div style="font-weight: 600; color: #4a9eff; font-size: 0.95em;">⚡ Flicker Fusion Threshold</div>
+				<a 
+					href="https://en.wikipedia.org/wiki/Flicker_fusion_threshold" 
+					target="_blank" 
+					rel="noopener noreferrer"
+					style="display: flex; align-items: center; gap: 4px; font-size: 0.75em; color: #aaa; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;"
+					title="Learn more on Wikipedia"
+				>
+					<svg width="14" height="14" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+						<path fill="currentColor" d="M120 0C53.8 0 0 53.8 0 120s53.8 120 120 120 120-53.8 120-120S186.2 0 120 0zm0 217.5c-53.8 0-97.5-43.7-97.5-97.5S66.2 22.5 120 22.5s97.5 43.7 97.5 97.5-43.7 97.5-97.5 97.5zm-7.5-165h15v90h-15zm0 105h15v15h-15z"/>
+					</svg>
+					<span>Wikipedia</span>
+				</a>
+			</div>
 			
 			<!-- Quick Presets -->
 			<div style="margin-bottom: 12px;">
 				<div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;">Quick Presets:</div>
 				<div style="display: flex; gap: 6px; flex-wrap: wrap;">
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(42)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						42 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(50)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						50 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(55)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						55 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(60)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						60 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(70)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						70 Hz
 					</button>
 				</div>
@@ -732,9 +787,16 @@
 
 		/* Make buttons finger-friendly on mobile */
 		button {
-			min-height: 44px;
-			padding: 10px 16px;
+			min-height: 48px;
+			padding: 12px 18px;
 			font-size: 16px;
+		}
+
+		/* Flicker preset buttons larger on mobile */
+		.flicker-preset-btn {
+			min-height: 48px !important;
+			padding: 12px 18px !important;
+			font-size: 1em !important;
 		}
 
 		.gif-export-group {
@@ -742,13 +804,27 @@
 		}
 
 		.gif-export-group button {
-			min-height: 44px;
-			padding: 10px 20px;
+			min-height: 48px;
+			padding: 12px 20px;
+			font-size: 16px;
 		}
 
 		.gif-export-group input,
 		.gif-export-group select {
-			min-height: 44px;
+			min-height: 48px;
+			padding: 12px;
+			font-size: 16px;
+		}
+
+		/* Labels and text more readable on mobile */
+		label {
+			font-size: 14px;
+		}
+
+		/* Manual speed input easier to tap */
+		#manual-speed-input {
+			min-height: 48px;
+			padding: 12px;
 			font-size: 16px;
 		}
 	}
@@ -879,6 +955,46 @@
 		}
 		50% {
 			box-shadow: 0 0 20px rgba(68, 255, 68, 0.8);
+		}
+	}
+
+	/* Save GIF button - attractive and prominent */
+	.save-gif-btn {
+		background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%) !important;
+		border: 2px solid #00d4ff !important;
+		animation: pulse-save 2s infinite;
+		font-weight: bold;
+		font-size: 1.1em;
+		box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+		transition: all 0.3s ease;
+	}
+
+	.save-gif-btn:hover:not(:disabled) {
+		background: linear-gradient(135deg, #00e5ff 0%, #00aaff 100%) !important;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 20px rgba(0, 212, 255, 0.8);
+	}
+
+	.save-gif-btn:active:not(:disabled) {
+		transform: translateY(0px);
+	}
+
+	.save-gif-btn:disabled {
+		background: #555 !important;
+		border-color: #666 !important;
+		animation: none;
+		box-shadow: none;
+		opacity: 0.5;
+	}
+
+	@keyframes pulse-save {
+		0%,
+		100% {
+			box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+		}
+		50% {
+			box-shadow: 0 0 25px rgba(0, 212, 255, 0.9), 0 0 35px rgba(0, 212, 255, 0.5);
 		}
 	}
 

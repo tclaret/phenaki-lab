@@ -17,7 +17,8 @@
 		confirmedDetection,
 		canvasTransform,
 		isMobile,
-		gifFrameCount
+		gifFrameCount,
+		userAdjustedSpeed
 	} from '../store';
 
 	let wrapper;
@@ -329,6 +330,7 @@
 				const delta = Math.round(dy * sensitivity);
 				const newSpeed = Math.max(10, Math.min(10000, Math.round(pointerStartSpeed + delta)));
 				rotationSpeed.set(newSpeed);
+				userAdjustedSpeed.set(true);
 				showSpeedHUD = true;
 				clearTimeout(hudTimeout);
 			}

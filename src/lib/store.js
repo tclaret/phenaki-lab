@@ -13,6 +13,9 @@ export const isPlaying = writable(false);
 export const rotationSpeed = writable(0);
 export const rotationDirection = writable(1);
 
+// Track if user has manually adjusted speed
+export const userAdjustedSpeed = writable(false);
+
 // Detected circle metadata (from analyzer)
 export const detectedCircle = writable(null); // { x,y,r }
 export const detectedCount = writable(0); // number of objects found on the circle

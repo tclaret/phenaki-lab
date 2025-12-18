@@ -9,8 +9,9 @@ function onDestroy(fn) {
 const previewUrl = writable(null);
 const imageUrl = writable(null);
 const isPlaying = writable(false);
-const rotationSpeed = writable(360);
+const rotationSpeed = writable(0);
 const rotationDirection = writable(1);
+const userAdjustedSpeed = writable(false);
 const detectedCircle = writable(null);
 const detectedCount = writable(0);
 const suggestedRotationSpeed = writable(1);
@@ -601,10 +602,28 @@ function CanvasPlayer($$renderer, $$props) {
 function AnalyzerPanel($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
-    let optsGifCount, _detectedCircle, _detectedCount, _suggested, _overlay;
+    let canSaveGif, optsGifCount, _detectedCircle, _detectedCount, _suggested, _overlay;
     let busy = false;
+    let hasPlayed = false;
     let manualSpeed = 0;
+    let exporting = false;
     let gifFps = 15;
+    if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying)) {
+      hasPlayed = true;
+    }
+    canSaveGif = store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle) && store_get($$store_subs ??= {}, "$confirmedDetection", confirmedDetection) && store_get($$store_subs ??= {}, "$isPlaying", isPlaying) && store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) > 0 && store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas);
+    {
+      console.log("GIF Save Conditions:", {
+        detectedCircle: !!store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle),
+        confirmedDetection: store_get($$store_subs ??= {}, "$confirmedDetection", confirmedDetection),
+        hasPlayed,
+        userAdjustedSpeed: store_get($$store_subs ??= {}, "$userAdjustedSpeed", userAdjustedSpeed),
+        playerCanvas: !!store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas),
+        isPlaying: store_get($$store_subs ??= {}, "$isPlaying", isPlaying),
+        rotationSpeed: store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed),
+        canSaveGif
+      });
+    }
     manualSpeed = Number(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0);
     optsGifCount = store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount);
     _detectedCircle = store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle);
@@ -625,7 +644,7 @@ function AnalyzerPanel($$renderer, $$props) {
       $$renderer2.push("<!--[!-->");
       $$renderer2.push(`<button${attr_class(clsx(!_detectedCircle ? "detect-btn-required" : ""), "svelte-14nyow8")}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl), true)}>Detect Circle &amp; Count</button>`);
     }
-    $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <div class="gif-export-group svelte-14nyow8"><button${attr("disabled", !store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas), true)} class="svelte-14nyow8">${escape_html("Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="6" step="1"${attr("placeholder", _detectedCount ? `Auto (${_detectedCount * 2})` : "Auto (24)")}${attr("value", store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount))} style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection" class="svelte-14nyow8">`);
+    $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <div class="gif-export-group svelte-14nyow8"><button class="save-gif-btn svelte-14nyow8"${attr("disabled", !canSaveGif || exporting, true)}>${escape_html("💾 Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="6" step="1"${attr("placeholder", _detectedCount ? `Auto (${_detectedCount * 2})` : "Auto (24)")}${attr("value", store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount))} style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection" class="svelte-14nyow8">`);
     if (optsGifCount) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`Manual`);
@@ -649,9 +668,30 @@ function AnalyzerPanel($$renderer, $$props) {
       },
       ($$renderer3) => {
         $$renderer3.option(
+          { value: 3, class: "" },
+          ($$renderer4) => {
+            $$renderer4.push(`3 (Ultra Slow)`);
+          },
+          "svelte-14nyow8"
+        );
+        $$renderer3.option(
+          { value: 5, class: "" },
+          ($$renderer4) => {
+            $$renderer4.push(`5 (Very Slow)`);
+          },
+          "svelte-14nyow8"
+        );
+        $$renderer3.option(
+          { value: 8, class: "" },
+          ($$renderer4) => {
+            $$renderer4.push(`8 (Slow)`);
+          },
+          "svelte-14nyow8"
+        );
+        $$renderer3.option(
           { value: 10, class: "" },
           ($$renderer4) => {
-            $$renderer4.push(`10 (Slow/Classic)`);
+            $$renderer4.push(`10 (Classic)`);
           },
           "svelte-14nyow8"
         );
@@ -696,7 +736,7 @@ function AnalyzerPanel($$renderer, $$props) {
     $$renderer2.push(`<!--]--></label></div> `);
     if (store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled)) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div style="margin-top: 16px; padding: 12px; background: rgba(74, 158, 255, 0.08); border-radius: 6px; border: 1px solid rgba(74, 158, 255, 0.2);" class="svelte-14nyow8"><div style="font-weight: 600; margin-bottom: 10px; color: #4a9eff; font-size: 0.95em;" class="svelte-14nyow8">⚡ Flicker Fusion Threshold</div> <div style="margin-bottom: 12px;" class="svelte-14nyow8"><div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;" class="svelte-14nyow8">Quick Presets:</div> <div style="display: flex; gap: 6px; flex-wrap: wrap;" class="svelte-14nyow8"><button${attr_style(`padding: 6px 10px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 42 ? "#ff6b6b" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 42 ? "#ff6b6b" : "#333")}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;`)} class="svelte-14nyow8">42 Hz</button> <button${attr_style(`padding: 6px 10px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 50 ? "#ffa500" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 50 ? "#ffa500" : "#333")}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;`)} class="svelte-14nyow8">50 Hz</button> <button${attr_style(`padding: 6px 10px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 55 ? "#4a9eff" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 55 ? "#4a9eff" : "#333")}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;`)} class="svelte-14nyow8">55 Hz</button> <button${attr_style(`padding: 6px 10px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 60 ? "#51cf66" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 60 ? "#51cf66" : "#333")}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;`)} class="svelte-14nyow8">60 Hz</button> <button${attr_style(`padding: 6px 10px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 70 ? "#845ef7" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 70 ? "#845ef7" : "#333")}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;`)} class="svelte-14nyow8">70 Hz</button></div></div> <div style="margin-top: 12px;" class="svelte-14nyow8"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;" class="svelte-14nyow8"><span style="font-size: 0.85em; color: #ccc;" class="svelte-14nyow8">Fine Tune:</span> <span style="font-size: 1.1em; font-weight: bold; color: #4a9eff;" class="svelte-14nyow8">${escape_html(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} Hz</span></div> <input type="range" min="40" max="70" step="0.5"${attr("value", store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} style="width: 100%; cursor: pointer;" class="svelte-14nyow8"/> <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #666; margin-top: 4px;" class="svelte-14nyow8"><span class="svelte-14nyow8">40 Hz</span> <span style="color: #4a9eff; font-weight: 500;" class="svelte-14nyow8">`);
+      $$renderer2.push(`<div style="margin-top: 16px; padding: 12px; background: rgba(74, 158, 255, 0.08); border-radius: 6px; border: 1px solid rgba(74, 158, 255, 0.2);" class="svelte-14nyow8"><div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;" class="svelte-14nyow8"><div style="font-weight: 600; color: #4a9eff; font-size: 0.95em;" class="svelte-14nyow8">⚡ Flicker Fusion Threshold</div> <a href="https://en.wikipedia.org/wiki/Flicker_fusion_threshold" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 4px; font-size: 0.75em; color: #aaa; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;" title="Learn more on Wikipedia" class="svelte-14nyow8"><svg width="14" height="14" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="svelte-14nyow8"><path fill="currentColor" d="M120 0C53.8 0 0 53.8 0 120s53.8 120 120 120 120-53.8 120-120S186.2 0 120 0zm0 217.5c-53.8 0-97.5-43.7-97.5-97.5S66.2 22.5 120 22.5s97.5 43.7 97.5 97.5-43.7 97.5-97.5 97.5zm-7.5-165h15v90h-15zm0 105h15v15h-15z" class="svelte-14nyow8"></path></svg> <span class="svelte-14nyow8">Wikipedia</span></a></div> <div style="margin-bottom: 12px;" class="svelte-14nyow8"><div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;" class="svelte-14nyow8">Quick Presets:</div> <div style="display: flex; gap: 6px; flex-wrap: wrap;" class="svelte-14nyow8"><button class="flicker-preset-btn svelte-14nyow8"${attr_style(`padding: 8px 14px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 42 ? "#ff6b6b" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 42 ? "#ff6b6b" : "#333")}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;`)}>42 Hz</button> <button class="flicker-preset-btn svelte-14nyow8"${attr_style(`padding: 8px 14px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 50 ? "#ffa500" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 50 ? "#ffa500" : "#333")}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;`)}>50 Hz</button> <button class="flicker-preset-btn svelte-14nyow8"${attr_style(`padding: 8px 14px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 55 ? "#4a9eff" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 55 ? "#4a9eff" : "#333")}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;`)}>55 Hz</button> <button class="flicker-preset-btn svelte-14nyow8"${attr_style(`padding: 8px 14px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 60 ? "#51cf66" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 60 ? "#51cf66" : "#333")}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;`)}>60 Hz</button> <button class="flicker-preset-btn svelte-14nyow8"${attr_style(`padding: 8px 14px; border: 1px solid ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 70 ? "#845ef7" : "#555")}; background: ${stringify(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) === 70 ? "#845ef7" : "#333")}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;`)}>70 Hz</button></div></div> <div style="margin-top: 12px;" class="svelte-14nyow8"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;" class="svelte-14nyow8"><span style="font-size: 0.85em; color: #ccc;" class="svelte-14nyow8">Fine Tune:</span> <span style="font-size: 1.1em; font-weight: bold; color: #4a9eff;" class="svelte-14nyow8">${escape_html(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} Hz</span></div> <input type="range" min="40" max="70" step="0.5"${attr("value", store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} style="width: 100%; cursor: pointer;" class="svelte-14nyow8"/> <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #666; margin-top: 4px;" class="svelte-14nyow8"><span class="svelte-14nyow8">40 Hz</span> <span style="color: #4a9eff; font-weight: 500;" class="svelte-14nyow8">`);
       if (store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) < 48) {
         $$renderer2.push("<!--[-->");
         $$renderer2.push(`🔴 Visible`);

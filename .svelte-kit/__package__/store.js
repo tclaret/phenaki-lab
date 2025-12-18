@@ -9,9 +9,12 @@ export const imageUrl = writable(null);
 // Animation state
 export const isPlaying = writable(false);
 // rotationSpeed: degrees per second (time-based)
-// Default is faster so spinning feels immediate on phones
-export const rotationSpeed = writable(360);
+// Default is 0 so it starts stopped
+export const rotationSpeed = writable(0);
 export const rotationDirection = writable(1);
+
+// Track if user has manually adjusted speed
+export const userAdjustedSpeed = writable(false);
 
 // Detected circle metadata (from analyzer)
 export const detectedCircle = writable(null); // { x,y,r }

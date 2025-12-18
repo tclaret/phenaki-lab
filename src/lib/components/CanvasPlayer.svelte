@@ -17,7 +17,8 @@
 		confirmedDetection,
 		canvasTransform,
 		isMobile,
-		gifFrameCount
+		gifFrameCount,
+		userAdjustedSpeed
 	} from '$lib/store';
 
 	let wrapper;
@@ -329,6 +330,7 @@
 				const delta = Math.round(dy * sensitivity);
 				const newSpeed = Math.max(10, Math.min(10000, Math.round(pointerStartSpeed + delta)));
 				rotationSpeed.set(newSpeed);
+				userAdjustedSpeed.set(true);
 				showSpeedHUD = true;
 				clearTimeout(hudTimeout);
 			}
@@ -953,26 +955,36 @@
 		
 		<!-- Frame count adjuster overlay -->
 		<div class="frame-counter">
-			<button 
-				class="frame-btn"
-				on:click|stopPropagation={() => gifFrameCount.set(Math.max(6, ($gifFrameCount || 12) - 1))}
-				on:pointerdown|stopPropagation
-				on:pointermove|stopPropagation
-				on:pointerup|stopPropagation
-				title="Decrease frame count"
-			>−</button>
-			<div class="frame-display">
-				<div class="frame-number">{$gifFrameCount || 12}</div>
-				<div class="frame-label">frames</div>
+			<div class="frame-info">
+				<div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;">
+					Adjust frames for GIF export
+				</div>
+				<div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;">
+					More frames = smoother animation, larger file
+				</div>
 			</div>
-			<button 
-				class="frame-btn"
-				on:click|stopPropagation={() => gifFrameCount.set(Math.min(100, ($gifFrameCount || 12) + 1))}
-				on:pointerdown|stopPropagation
-				on:pointermove|stopPropagation
-				on:pointerup|stopPropagation
-				title="Increase frame count"
-			>+</button>
+			<div style="display: flex; align-items: center; gap: 8px;">
+				<button 
+					class="frame-btn"
+					on:click|stopPropagation={() => gifFrameCount.set(Math.max(6, ($gifFrameCount || 12) - 1))}
+					on:pointerdown|stopPropagation
+					on:pointermove|stopPropagation
+					on:pointerup|stopPropagation
+					title="Decrease frame count"
+				>−</button>
+				<div class="frame-display">
+					<div class="frame-number">{$gifFrameCount || 12}</div>
+					<div class="frame-label">frames</div>
+				</div>
+				<button 
+					class="frame-btn"
+					on:click|stopPropagation={() => gifFrameCount.set(Math.min(100, ($gifFrameCount || 12) + 1))}
+					on:pointerdown|stopPropagation
+					on:pointermove|stopPropagation
+					on:pointerup|stopPropagation
+					title="Increase frame count"
+				>+</button>
+			</div>
 		</div>
 	{/if}
 </div>

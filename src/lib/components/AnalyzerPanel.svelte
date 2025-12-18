@@ -17,7 +17,8 @@
 		isMobile,
 		flickerEnabled,
 		flickerFrequency,
-		gifFrameCount
+		gifFrameCount,
+		userAdjustedSpeed
 	} from '$lib/store';
 	// also import detectedPositions which is set by runDetection
 	import { detectedPositions } from '$lib/store';
@@ -29,6 +30,18 @@
 	import { exportGif } from '$lib/image/gifExport';
 
 	let busy = false;
+	
+	// Track user interactions for enabling GIF save
+	let hasPlayed = false;
+
+	// Watch for play state to track if user has played
+	$: if ($isPlaying) {
+		hasPlayed = true;
+	}
+
+	// Determine if GIF save should be enabled
+	// Active when: circle detected, playing, and speed > 0
+	$: canSaveGif = !!$detectedCircle && $isPlaying && $rotationSpeed > 0;
 
 	async function togglePlay() {
 		isPlaying.update((v) => !v);
@@ -36,10 +49,12 @@
 
 	function increaseSpeed() {
 		rotationSpeed.update((v) => Math.min(10000, v + 60));
+		userAdjustedSpeed.set(true);
 	}
 
 	function decreaseSpeed() {
 		rotationSpeed.update((v) => Math.max(10, v - 60));
+		userAdjustedSpeed.set(true);
 	}
 
 	function reverseDir() {
@@ -179,7 +194,10 @@
 
 	function applySuggestedSpeed() {
 		suggestedRotationSpeed.subscribe((s) => {
-			if (s) rotationSpeed.set(s);
+			if (s) {
+				rotationSpeed.set(s);
+				userAdjustedSpeed.set(true);
+			}
 		})();
 	}
 
@@ -200,6 +218,7 @@
 
 	function applyManualSpeed() {
 		const v = Number(manualSpeed) || 0;
+		hasAdjustedSpeed = true;
 		if (v <= 0) return;
 		rotationSpeed.set(v);
 	}
@@ -437,8 +456,8 @@
 		
 		<!-- GIF Export Group -->
 		<div class="gif-export-group">
-			<button on:click={saveGif} disabled={exporting || !$playerCanvas}
-				>{exporting ? 'Exporting...' : 'Save GIF'}</button
+			<button class="save-gif-btn" on:click={saveGif} disabled={!canSaveGif || exporting}
+				>{exporting ? '⏳ Exporting...' : '💾 Save GIF'}</button
 			>
 			<label style="display:flex;align-items:center;gap:6px;">
 				<span style="font-size:12px;opacity:0.8;">Frames:</span>
@@ -504,7 +523,21 @@
 	<!-- Flicker Fusion Threshold Controls -->
 	{#if $flickerEnabled}
 		<div style="margin-top: 16px; padding: 12px; background: rgba(74, 158, 255, 0.08); border-radius: 6px; border: 1px solid rgba(74, 158, 255, 0.2);">
-			<div style="font-weight: 600; margin-bottom: 10px; color: #4a9eff; font-size: 0.95em;">⚡ Flicker Fusion Threshold</div>
+			<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+				<div style="font-weight: 600; color: #4a9eff; font-size: 0.95em;">⚡ Flicker Fusion Threshold</div>
+				<a 
+					href="https://en.wikipedia.org/wiki/Flicker_fusion_threshold" 
+					target="_blank" 
+					rel="noopener noreferrer"
+					style="display: flex; align-items: center; gap: 4px; font-size: 0.75em; color: #aaa; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;"
+					title="Learn more on Wikipedia"
+				>
+					<svg width="14" height="14" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+						<path fill="currentColor" d="M120 0C53.8 0 0 53.8 0 120s53.8 120 120 120 120-53.8 120-120S186.2 0 120 0zm0 217.5c-53.8 0-97.5-43.7-97.5-97.5S66.2 22.5 120 22.5s97.5 43.7 97.5 97.5-43.7 97.5-97.5 97.5zm-7.5-165h15v90h-15zm0 105h15v15h-15z"/>
+					</svg>
+					<span>Wikipedia</span>
+				</a>
+			</div>
 			
 			<!-- Quick Presets -->
 			<div style="margin-bottom: 12px;">
@@ -908,6 +941,46 @@
 		}
 		50% {
 			box-shadow: 0 0 20px rgba(68, 255, 68, 0.8);
+		}
+	}
+
+	/* Save GIF button - attractive and prominent */
+	.save-gif-btn {
+		background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%) !important;
+		border: 2px solid #00d4ff !important;
+		animation: pulse-save 2s infinite;
+		font-weight: bold;
+		font-size: 1.1em;
+		box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+		transition: all 0.3s ease;
+	}
+
+	.save-gif-btn:hover:not(:disabled) {
+		background: linear-gradient(135deg, #00e5ff 0%, #00aaff 100%) !important;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 20px rgba(0, 212, 255, 0.8);
+	}
+
+	.save-gif-btn:active:not(:disabled) {
+		transform: translateY(0px);
+	}
+
+	.save-gif-btn:disabled {
+		background: #555 !important;
+		border-color: #666 !important;
+		animation: none;
+		box-shadow: none;
+		opacity: 0.5;
+	}
+
+	@keyframes pulse-save {
+		0%,
+		100% {
+			box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+		}
+		50% {
+			box-shadow: 0 0 25px rgba(0, 212, 255, 0.9), 0 0 35px rgba(0, 212, 255, 0.5);
 		}
 	}
 
