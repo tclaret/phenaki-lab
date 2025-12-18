@@ -7,6 +7,14 @@
 	const GITHUB_RAW_URL_NEW = 'https://raw.githubusercontent.com/tclaret/phenaki-lab/main/img';
 
 	const samples = [
+		{ name: 'Colors', file: 'colors.png', repo: 'new' },
+		{ name: 'Medium 1990', file: 'medium_1990_5036_7181_6_1.png', repo: 'new' },
+		{ name: 'Cats et Donkey', file: 'optical-toy-phenakistiscope-disc-avec-cats-et-donkey-ca-1830-2efx315.jpg', repo: 'new' },
+		{ name: 'Dancing Man Animated', file: 'Optical_Toy,_Phenakistiscope_Disc_with_Dancing_Man,_ca._1835-Animated.jpg', repo: 'new' },
+		{ name: 'Phénakistiscope 2', file: 'phénakistiscope2.png', repo: 'new' },
+		{ name: 'Disque Animation 29', file: 'phenakistiscope-disque-animation-29.jpg', repo: 'new' },
+		{ name: 'S-L1600 1', file: 's-l1600_1.jpg', repo: 'new' },
+		{ name: 'S-L1600', file: 's-l1600.jpg', repo: 'new' },
 		{ name: 'Woman Chopping Tree', file: 'WomanChoppingTree.jpg', repo: 'old' },
 		{ name: 'Dancing', file: 'Dancing.jpg', repo: 'old' },
 		{ name: 'Jongleur', file: 'Jongleur.png', repo: 'old' },
