@@ -467,7 +467,10 @@
 					bind:value={gifFps}
 					style="padding:4px;border-radius:4px;border:1px solid #ccc;background:#333;color:white;"
 				>
-					<option value={10}>10 (Slow/Classic)</option>
+					<option value={3}>3 (Ultra Slow)</option>
+					<option value={5}>5 (Very Slow)</option>
+					<option value={8}>8 (Slow)</option>
+					<option value={10}>10 (Classic)</option>
 					<option value={15}>15 (Natural)</option>
 					<option value={20}>20 (Smooth)</option>
 					<option value={24}>24 (Cinema)</option>
