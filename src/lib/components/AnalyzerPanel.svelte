@@ -511,28 +511,33 @@
 				<div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;">Quick Presets:</div>
 				<div style="display: flex; gap: 6px; flex-wrap: wrap;">
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(42)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						42 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(50)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						50 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(55)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						55 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(60)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						60 Hz
 					</button>
 					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(70)}
-						style="padding: 6px 10px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.8em;">
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						70 Hz
 					</button>
 				</div>
@@ -735,9 +740,16 @@
 
 		/* Make buttons finger-friendly on mobile */
 		button {
-			min-height: 44px;
-			padding: 10px 16px;
+			min-height: 48px;
+			padding: 12px 18px;
 			font-size: 16px;
+		}
+
+		/* Flicker preset buttons larger on mobile */
+		.flicker-preset-btn {
+			min-height: 48px !important;
+			padding: 12px 18px !important;
+			font-size: 1em !important;
 		}
 
 		.gif-export-group {
@@ -745,13 +757,27 @@
 		}
 
 		.gif-export-group button {
-			min-height: 44px;
-			padding: 10px 20px;
+			min-height: 48px;
+			padding: 12px 20px;
+			font-size: 16px;
 		}
 
 		.gif-export-group input,
 		.gif-export-group select {
-			min-height: 44px;
+			min-height: 48px;
+			padding: 12px;
+			font-size: 16px;
+		}
+
+		/* Labels and text more readable on mobile */
+		label {
+			font-size: 14px;
+		}
+
+		/* Manual speed input easier to tap */
+		#manual-speed-input {
+			min-height: 48px;
+			padding: 12px;
 			font-size: 16px;
 		}
 	}
