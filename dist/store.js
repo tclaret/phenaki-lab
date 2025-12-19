@@ -6,6 +6,9 @@ export const previewUrl = writable(null);
 // URL utilisée par le Canvas
 export const imageUrl = writable(null);
 
+// Selected image name
+export const selectedImageName = writable(null);
+
 // Animation state
 export const isPlaying = writable(false);
 // rotationSpeed: degrees per second (time-based)

@@ -40,25 +40,44 @@
 	}
 
 	// Determine if GIF save should be enabled
-	// Simplified: just need detection confirmed, playing, and non-zero speed
-	$: canSaveGif = $detectedCircle && $confirmedDetection && $isPlaying && $rotationSpeed > 0 && $playerCanvas;
-
-	// Debug: log conditions
-	$: {
-		console.log('GIF Save Conditions:', {
-			detectedCircle: !!$detectedCircle,
-			confirmedDetection: $confirmedDetection,
-			hasPlayed,
-			userAdjustedSpeed: $userAdjustedSpeed,
-			playerCanvas: !!$playerCanvas,
-			isPlaying: $isPlaying,
-			rotationSpeed: $rotationSpeed,
-			canSaveGif
-		});
-	}
+	// Active when: circle detected, playing, and speed > 0
+	$: canSaveGif = !!$detectedCircle && $isPlaying && $rotationSpeed > 0;
 
 	async function togglePlay() {
 		isPlaying.update((v) => !v);
+	}
+
+	// Long press support for speed buttons
+	let speedInterval = null;
+
+	function startSpeedChange(direction) {
+		// Immediate first change
+		if (direction === 'increase') {
+			increaseSpeed();
+		} else {
+			decreaseSpeed();
+		}
+		
+		// Clear any existing interval
+		if (speedInterval) {
+			clearInterval(speedInterval);
+		}
+		
+		// Continue changing while held
+		speedInterval = setInterval(() => {
+			if (direction === 'increase') {
+				increaseSpeed();
+			} else {
+				decreaseSpeed();
+			}
+		}, 100); // Repeat every 100ms
+	}
+
+	function stopSpeedChange() {
+		if (speedInterval) {
+			clearInterval(speedInterval);
+			speedInterval = null;
+		}
 	}
 
 	function increaseSpeed() {
@@ -232,9 +251,9 @@
 
 	function applyManualSpeed() {
 		const v = Number(manualSpeed) || 0;
-		hasAdjustedSpeed = true;
-		if (v <= 0) return;
+		if (v < 0) return; // Allow 0 and positive values
 		rotationSpeed.set(v);
+		userAdjustedSpeed.set(true);
 	}
 
 	// GIF export
@@ -348,12 +367,15 @@
 		// don't start drag when clicking a button
 		if (e.target && e.target.closest && e.target.closest('button')) return;
 
-		// only drag if double-tapped, dragging the handle, or on mobile always allow drag from handle
+		// only drag if double-tapped, dragging the handle, or on mobile always allow drag from handle or non-button areas
 		const isDraggingHandle = e.target && e.target.closest && e.target.closest('.drag-handle');
 		const isMobileDevice = $isMobile;
-		// On mobile: always allow drag from handle. On desktop: require double-tap or handle
-		if (!isDraggingHandle && !isDoubleTap && !isMobileDevice) return;
-		if (isMobileDevice && !isDraggingHandle) return;
+		const isClickingSpeedDisplay = e.target && e.target.closest && 
+			(e.target.classList.contains('speed-display') || e.target.closest('.speed-display'));
+		
+		// On mobile: allow drag from handle or speed display area. On desktop: require double-tap or handle
+		if (!isDraggingHandle && !isDoubleTap && !isMobileDevice && !isClickingSpeedDisplay) return;
+		if (isMobileDevice && !isDraggingHandle && !isClickingSpeedDisplay) return;
 
 		dragMode = true;
 		dragging = true;
@@ -663,8 +685,10 @@
 			<div style="display:flex;gap:12px;align-items:center;">
 				<button 
 					class="speed-btn" 
-					on:click|stopPropagation={decreaseSpeed}
-					on:pointerdown|stopPropagation
+					on:pointerdown|stopPropagation={() => startSpeedChange('decrease')}
+					on:pointerup|stopPropagation={stopSpeedChange}
+					on:pointerleave|stopPropagation={stopSpeedChange}
+					on:pointercancel|stopPropagation={stopSpeedChange}
 				>−</button>
 				<div style="text-align:center;min-width:120px;">
 					<div class="speed-display">{$rotationSpeed.toFixed(0)}°/s</div>
@@ -672,8 +696,10 @@
 				</div>
 				<button 
 					class="speed-btn" 
-					on:click|stopPropagation={increaseSpeed}
-					on:pointerdown|stopPropagation
+					on:pointerdown|stopPropagation={() => startSpeedChange('increase')}
+					on:pointerup|stopPropagation={stopSpeedChange}
+					on:pointerleave|stopPropagation={stopSpeedChange}
+					on:pointercancel|stopPropagation={stopSpeedChange}
 				>+</button>
 			</div>
 		</div>

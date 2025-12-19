@@ -957,10 +957,10 @@
 		<div class="frame-counter">
 			<div class="frame-info">
 				<div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;">
-					Adjust frames for GIF export
+					How many scenes on the disc?
 				</div>
 				<div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;">
-					More frames = smoother animation, larger file
+					Set frame count = number of animation scenes
 				</div>
 			</div>
 			<div style="display: flex; align-items: center; gap: 8px;">

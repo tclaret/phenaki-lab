@@ -1,5 +1,6 @@
 export const previewUrl: import("svelte/store").Writable<null>;
 export const imageUrl: import("svelte/store").Writable<null>;
+export const selectedImageName: import("svelte/store").Writable<null>;
 export const isPlaying: import("svelte/store").Writable<boolean>;
 export const rotationSpeed: import("svelte/store").Writable<number>;
 export const rotationDirection: import("svelte/store").Writable<number>;

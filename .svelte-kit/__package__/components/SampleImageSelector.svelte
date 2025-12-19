@@ -1,12 +1,20 @@
 <script>
 	import { onMount } from 'svelte';
-	import { imageUrl, previewUrl, isPlaying } from '../store';
+	import { imageUrl, previewUrl, isPlaying, selectedImageName } from '../store';
 
 	const GITHUB_RAW_URL_OLD =
 		'https://raw.githubusercontent.com/tclaret/phenakistoscope-simulator/main/images';
 	const GITHUB_RAW_URL_NEW = 'https://raw.githubusercontent.com/tclaret/phenaki-lab/main/img';
 
 	const samples = [
+		{ name: 'Colors', file: 'colors.png', repo: 'new' },
+		{ name: 'Medium 1990', file: 'medium_1990_5036_7181_6_1.png', repo: 'new' },
+		{ name: 'Cats et Donkey', file: 'optical-toy-phenakistiscope-disc-avec-cats-et-donkey-ca-1830-2efx315.jpg', repo: 'new' },
+		{ name: 'Dancing Man Animated', file: 'Optical_Toy,_Phenakistiscope_Disc_with_Dancing_Man,_ca._1835-Animated.jpg', repo: 'new' },
+		{ name: 'Phénakistiscope 2', file: 'phénakistiscope2.png', repo: 'new' },
+		{ name: 'Disque Animation 29', file: 'phenakistiscope-disque-animation-29.jpg', repo: 'new' },
+		{ name: 'S-L1600 1', file: 's-l1600_1.jpg', repo: 'new' },
+		{ name: 'S-L1600', file: 's-l1600.jpg', repo: 'new' },
 		{ name: 'Woman Chopping Tree', file: 'WomanChoppingTree.jpg', repo: 'old' },
 		{ name: 'Dancing', file: 'Dancing.jpg', repo: 'old' },
 		{ name: 'Jongleur', file: 'Jongleur.png', repo: 'old' },
@@ -75,12 +83,16 @@
 		{ name: 'Cinémathèque 25', file: 'cinemateque_francaise_25.png', repo: 'new' }
 	];
 
+	let selectedSampleFile = '';
+
 	function selectSample(sample) {
 		const baseUrl = sample.repo === 'new' ? GITHUB_RAW_URL_NEW : GITHUB_RAW_URL_OLD;
 		const url = `${baseUrl}/${sample.file}`;
 		imageUrl.set(url);
 		previewUrl.set(url);
 		isPlaying.set(true);
+		selectedImageName.set(sample.name);
+		selectedSampleFile = sample.file;
 	}
 
 	// pick a random starting image if none is already selected
@@ -99,8 +111,12 @@
 
 <div class="selector">
 	<label for="samples">Sample Images:</label>
+	{#if $selectedImageName}
+		<span class="current-image" title="Currently loaded image">📷 {$selectedImageName}</span>
+	{/if}
 	<select
 		id="samples"
+		bind:value={selectedSampleFile}
 		on:change={(e) => {
 			const idx = e.target.selectedIndex - 1;
 			if (idx >= 0) selectSample(samples[idx]);
@@ -123,6 +139,14 @@
 	}
 	label {
 		font-weight: 600;
+	}
+	.current-image {
+		color: #0096ff;
+		font-weight: 500;
+		padding: 4px 8px;
+		background: rgba(0, 150, 255, 0.1);
+		border-radius: 4px;
+		font-size: 14px;
 	}
 	select {
 		padding: 6px 10px;

@@ -47,6 +47,39 @@
 		isPlaying.update((v) => !v);
 	}
 
+	// Long press support for speed buttons
+	let speedInterval = null;
+
+	function startSpeedChange(direction) {
+		// Immediate first change
+		if (direction === 'increase') {
+			increaseSpeed();
+		} else {
+			decreaseSpeed();
+		}
+		
+		// Clear any existing interval
+		if (speedInterval) {
+			clearInterval(speedInterval);
+		}
+		
+		// Continue changing while held
+		speedInterval = setInterval(() => {
+			if (direction === 'increase') {
+				increaseSpeed();
+			} else {
+				decreaseSpeed();
+			}
+		}, 100); // Repeat every 100ms
+	}
+
+	function stopSpeedChange() {
+		if (speedInterval) {
+			clearInterval(speedInterval);
+			speedInterval = null;
+		}
+	}
+
 	function increaseSpeed() {
 		rotationSpeed.update((v) => Math.min(10000, v + 60));
 		userAdjustedSpeed.set(true);
@@ -218,9 +251,9 @@
 
 	function applyManualSpeed() {
 		const v = Number(manualSpeed) || 0;
-		hasAdjustedSpeed = true;
-		if (v <= 0) return;
+		if (v < 0) return; // Allow 0 and positive values
 		rotationSpeed.set(v);
+		userAdjustedSpeed.set(true);
 	}
 
 	// GIF export
@@ -334,12 +367,15 @@
 		// don't start drag when clicking a button
 		if (e.target && e.target.closest && e.target.closest('button')) return;
 
-		// only drag if double-tapped, dragging the handle, or on mobile always allow drag from handle
+		// only drag if double-tapped, dragging the handle, or on mobile always allow drag from handle or non-button areas
 		const isDraggingHandle = e.target && e.target.closest && e.target.closest('.drag-handle');
 		const isMobileDevice = $isMobile;
-		// On mobile: always allow drag from handle. On desktop: require double-tap or handle
-		if (!isDraggingHandle && !isDoubleTap && !isMobileDevice) return;
-		if (isMobileDevice && !isDraggingHandle) return;
+		const isClickingSpeedDisplay = e.target && e.target.closest && 
+			(e.target.classList.contains('speed-display') || e.target.closest('.speed-display'));
+		
+		// On mobile: allow drag from handle or speed display area. On desktop: require double-tap or handle
+		if (!isDraggingHandle && !isDoubleTap && !isMobileDevice && !isClickingSpeedDisplay) return;
+		if (isMobileDevice && !isDraggingHandle && !isClickingSpeedDisplay) return;
 
 		dragMode = true;
 		dragging = true;
@@ -539,6 +575,10 @@
 				</a>
 			</div>
 			
+			<div style="font-size: 0.8em; color: #888; font-style: italic; margin-bottom: 10px;">
+				Note: This test only affects visualization, not the exported GIF
+			</div>
+			
 			<!-- Quick Presets -->
 			<div style="margin-bottom: 12px;">
 				<div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;">Quick Presets:</div>
@@ -641,7 +681,7 @@
 		<div
 			class="speed-control {dragMode ? 'dragMode' : ''} {dragging ? 'dragging' : ''} {$isMobile ? 'mobile' : ''}"
 			on:pointerdown={onOverlayPointerDown}
-			style="left: {overlayPos.left ?? 16}px; top: {overlayPos.top ?? 16}px;"
+			style="left: {overlayPos.left ?? Math.round((window.innerWidth - 200) / 2)}px; top: {overlayPos.top ?? Math.round((window.innerHeight - 80) / 2)}px;"
 		>
 			{#if dragMode || $isMobile}
 				<div class="drag-handle" title="Drag to move">⋮⋮</div>
@@ -649,8 +689,10 @@
 			<div style="display:flex;gap:12px;align-items:center;">
 				<button 
 					class="speed-btn" 
-					on:click|stopPropagation={decreaseSpeed}
-					on:pointerdown|stopPropagation
+					on:pointerdown|stopPropagation={() => startSpeedChange('decrease')}
+					on:pointerup|stopPropagation={stopSpeedChange}
+					on:pointerleave|stopPropagation={stopSpeedChange}
+					on:pointercancel|stopPropagation={stopSpeedChange}
 				>−</button>
 				<div style="text-align:center;min-width:120px;">
 					<div class="speed-display">{$rotationSpeed.toFixed(0)}°/s</div>
@@ -658,8 +700,10 @@
 				</div>
 				<button 
 					class="speed-btn" 
-					on:click|stopPropagation={increaseSpeed}
-					on:pointerdown|stopPropagation
+					on:pointerdown|stopPropagation={() => startSpeedChange('increase')}
+					on:pointerup|stopPropagation={stopSpeedChange}
+					on:pointerleave|stopPropagation={stopSpeedChange}
+					on:pointercancel|stopPropagation={stopSpeedChange}
 				>+</button>
 			</div>
 		</div>
@@ -689,7 +733,7 @@
 				<button on:click={applyManualSpeed}>Set</button>
 			</div>
 		</div>
-		<div><strong>Detected count:</strong> {_detectedCount ?? 0}</div>
+		<div><strong>Selected scenes count:</strong> {$gifFrameCount ?? 12}</div>
 		<div><strong>Suggested speed:</strong> {_suggested ? _suggested.toFixed(0) : '—'}°/s</div>
 		{#if _detectedCircle}
 			<div>

@@ -955,26 +955,36 @@
 		
 		<!-- Frame count adjuster overlay -->
 		<div class="frame-counter">
-			<button 
-				class="frame-btn"
-				on:click|stopPropagation={() => gifFrameCount.set(Math.max(6, ($gifFrameCount || 12) - 1))}
-				on:pointerdown|stopPropagation
-				on:pointermove|stopPropagation
-				on:pointerup|stopPropagation
-				title="Decrease frame count"
-			>−</button>
-			<div class="frame-display">
-				<div class="frame-number">{$gifFrameCount || 12}</div>
-				<div class="frame-label">frames</div>
+			<div class="frame-info">
+				<div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;">
+					How many scenes on the disc?
+				</div>
+				<div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;">
+					Set frame count = number of animation scenes
+				</div>
 			</div>
-			<button 
-				class="frame-btn"
-				on:click|stopPropagation={() => gifFrameCount.set(Math.min(100, ($gifFrameCount || 12) + 1))}
-				on:pointerdown|stopPropagation
-				on:pointermove|stopPropagation
-				on:pointerup|stopPropagation
-				title="Increase frame count"
-			>+</button>
+			<div style="display: flex; align-items: center; gap: 8px;">
+				<button 
+					class="frame-btn"
+					on:click|stopPropagation={() => gifFrameCount.set(Math.max(6, ($gifFrameCount || 12) - 1))}
+					on:pointerdown|stopPropagation
+					on:pointermove|stopPropagation
+					on:pointerup|stopPropagation
+					title="Decrease frame count"
+				>−</button>
+				<div class="frame-display">
+					<div class="frame-number">{$gifFrameCount || 12}</div>
+					<div class="frame-label">frames</div>
+				</div>
+				<button 
+					class="frame-btn"
+					on:click|stopPropagation={() => gifFrameCount.set(Math.min(100, ($gifFrameCount || 12) + 1))}
+					on:pointerdown|stopPropagation
+					on:pointermove|stopPropagation
+					on:pointerup|stopPropagation
+					title="Increase frame count"
+				>+</button>
+			</div>
 		</div>
 	{/if}
 </div>

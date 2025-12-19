@@ -8,10 +8,10 @@ function onDestroy(fn) {
 }
 const previewUrl = writable(null);
 const imageUrl = writable(null);
+const selectedImageName = writable(null);
 const isPlaying = writable(false);
 const rotationSpeed = writable(0);
 const rotationDirection = writable(1);
-const userAdjustedSpeed = writable(false);
 const detectedCircle = writable(null);
 const detectedCount = writable(0);
 const suggestedRotationSpeed = writable(1);
@@ -591,7 +591,7 @@ function CanvasPlayer($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="edit-mode-indicator svelte-byh4af">⚙️ EDIT MODE - Drag to position • Scroll to zoom</div> <div class="frame-counter svelte-byh4af"><button class="frame-btn svelte-byh4af" title="Decrease frame count">−</button> <div class="frame-display svelte-byh4af"><div class="frame-number svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || 12)}</div> <div class="frame-label svelte-byh4af">frames</div></div> <button class="frame-btn svelte-byh4af" title="Increase frame count">+</button></div>`);
+      $$renderer2.push(`<div class="edit-mode-indicator svelte-byh4af">⚙️ EDIT MODE - Drag to position • Scroll to zoom</div> <div class="frame-counter svelte-byh4af"><div class="frame-info svelte-byh4af"><div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;" class="svelte-byh4af">How many scenes on the disc?</div> <div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;" class="svelte-byh4af">Set frame count = number of animation scenes</div></div> <div style="display: flex; align-items: center; gap: 8px;" class="svelte-byh4af"><button class="frame-btn svelte-byh4af" title="Decrease frame count">−</button> <div class="frame-display svelte-byh4af"><div class="frame-number svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || 12)}</div> <div class="frame-label svelte-byh4af">frames</div></div> <button class="frame-btn svelte-byh4af" title="Increase frame count">+</button></div></div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -604,26 +604,11 @@ function AnalyzerPanel($$renderer, $$props) {
     var $$store_subs;
     let canSaveGif, optsGifCount, _detectedCircle, _detectedCount, _suggested, _overlay;
     let busy = false;
-    let hasPlayed = false;
     let manualSpeed = 0;
     let exporting = false;
     let gifFps = 15;
-    if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying)) {
-      hasPlayed = true;
-    }
-    canSaveGif = store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle) && store_get($$store_subs ??= {}, "$confirmedDetection", confirmedDetection) && store_get($$store_subs ??= {}, "$isPlaying", isPlaying) && store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) > 0 && store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas);
-    {
-      console.log("GIF Save Conditions:", {
-        detectedCircle: !!store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle),
-        confirmedDetection: store_get($$store_subs ??= {}, "$confirmedDetection", confirmedDetection),
-        hasPlayed,
-        userAdjustedSpeed: store_get($$store_subs ??= {}, "$userAdjustedSpeed", userAdjustedSpeed),
-        playerCanvas: !!store_get($$store_subs ??= {}, "$playerCanvas", playerCanvas),
-        isPlaying: store_get($$store_subs ??= {}, "$isPlaying", isPlaying),
-        rotationSpeed: store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed),
-        canSaveGif
-      });
-    }
+    if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying)) ;
+    canSaveGif = !!store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle) && store_get($$store_subs ??= {}, "$isPlaying", isPlaying) && store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) > 0;
     manualSpeed = Number(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed) || 0);
     optsGifCount = store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount);
     _detectedCircle = store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle);
@@ -848,7 +833,36 @@ function AnalyzerPanel($$renderer, $$props) {
 }
 function SampleImageSelector($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
+    var $$store_subs;
     const samples = [
+      { name: "Colors", file: "colors.png", repo: "new" },
+      {
+        name: "Medium 1990",
+        file: "medium_1990_5036_7181_6_1.png",
+        repo: "new"
+      },
+      {
+        name: "Cats et Donkey",
+        file: "optical-toy-phenakistiscope-disc-avec-cats-et-donkey-ca-1830-2efx315.jpg",
+        repo: "new"
+      },
+      {
+        name: "Dancing Man Animated",
+        file: "Optical_Toy,_Phenakistiscope_Disc_with_Dancing_Man,_ca._1835-Animated.jpg",
+        repo: "new"
+      },
+      {
+        name: "Phénakistiscope 2",
+        file: "phénakistiscope2.png",
+        repo: "new"
+      },
+      {
+        name: "Disque Animation 29",
+        file: "phenakistiscope-disque-animation-29.jpg",
+        repo: "new"
+      },
+      { name: "S-L1600 1", file: "s-l1600_1.jpg", repo: "new" },
+      { name: "S-L1600", file: "s-l1600.jpg", repo: "new" },
       {
         name: "Woman Chopping Tree",
         file: "WomanChoppingTree.jpg",
@@ -1088,23 +1102,39 @@ function SampleImageSelector($$renderer, $$props) {
         repo: "new"
       }
     ];
-    $$renderer2.push(`<div class="selector svelte-ai08gq"><label for="samples" class="svelte-ai08gq">Sample Images:</label> <select id="samples" class="svelte-ai08gq">`);
-    $$renderer2.option({ value: "" }, ($$renderer3) => {
-      $$renderer3.push(`-- Choose a sample --`);
-    });
-    $$renderer2.push(`<!--[-->`);
-    const each_array = ensure_array_like(samples);
-    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-      let sample = each_array[$$index];
-      $$renderer2.option({ value: sample.file }, ($$renderer3) => {
-        $$renderer3.push(`${escape_html(sample.name)}`);
-      });
+    let selectedSampleFile = "";
+    $$renderer2.push(`<div class="selector svelte-ai08gq"><label for="samples" class="svelte-ai08gq">Sample Images:</label> `);
+    if (store_get($$store_subs ??= {}, "$selectedImageName", selectedImageName)) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<span class="current-image svelte-ai08gq" title="Currently loaded image">📷 ${escape_html(store_get($$store_subs ??= {}, "$selectedImageName", selectedImageName))}</span>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--></select></div>`);
+    $$renderer2.push(`<!--]--> `);
+    $$renderer2.select(
+      { id: "samples", value: selectedSampleFile, class: "" },
+      ($$renderer3) => {
+        $$renderer3.option({ value: "" }, ($$renderer4) => {
+          $$renderer4.push(`-- Choose a sample --`);
+        });
+        $$renderer3.push(`<!--[-->`);
+        const each_array = ensure_array_like(samples);
+        for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+          let sample = each_array[$$index];
+          $$renderer3.option({ value: sample.file }, ($$renderer4) => {
+            $$renderer4.push(`${escape_html(sample.name)}`);
+          });
+        }
+        $$renderer3.push(`<!--]-->`);
+      },
+      "svelte-ai08gq"
+    );
+    $$renderer2.push(`</div>`);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
   });
 }
 function _page($$renderer) {
-  $$renderer.push(`<div class="container svelte-1uha8ag"><h1 class="svelte-1uha8ag">Phenakistoscope Lab</h1> <p class="sub svelte-1uha8ag">Convert old phenakistoscope discs into animated GIFs</p> `);
+  $$renderer.push(`<div class="container svelte-1uha8ag"><h1 class="svelte-1uha8ag">Phenakistoscope Lab</h1> <p class="sub svelte-1uha8ag">Convert old phenakistoscope discs into animated GIFs</p> <div class="intro svelte-1uha8ag"><p class="svelte-1uha8ag">To create an animated GIF from a phenakistoscope image, select the correct number of frames according to the image, adjust the rotation speed, and then save it as a fast, slow, or normal animated GIF depending on your settings.</p></div> `);
   FileUploader($$renderer);
   $$renderer.push(`<!----> `);
   SampleImageSelector($$renderer);
