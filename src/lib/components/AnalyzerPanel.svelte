@@ -585,6 +585,12 @@
 				<div style="display: flex; gap: 6px; flex-wrap: wrap;">
 					<button 
 						class="flicker-preset-btn"
+						on:click={() => flickerFrequency.set(30)}
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 30 ? '#c92a2a' : '#555'}; background: {$flickerFrequency === 30 ? '#c92a2a' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						30 Hz
+					</button>
+					<button 
+						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(42)}
 						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						42 Hz
@@ -613,6 +619,18 @@
 						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						70 Hz
 					</button>
+					<button 
+						class="flicker-preset-btn"
+						on:click={() => flickerFrequency.set(80)}
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 80 ? '#20c997' : '#555'}; background: {$flickerFrequency === 80 ? '#20c997' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						80 Hz
+					</button>
+					<button 
+						class="flicker-preset-btn"
+						on:click={() => flickerFrequency.set(100)}
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 100 ? '#12b886' : '#555'}; background: {$flickerFrequency === 100 ? '#12b886' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						100 Hz
+					</button>
 				</div>
 			</div>
 
@@ -624,24 +642,24 @@
 				</div>
 				<input 
 					type="range" 
-					min="40" 
-					max="70" 
+					min="20" 
+					max="100" 
 					step="0.5" 
 					value={$flickerFrequency}
 					on:input={(e)=>flickerFrequency.set(+e.target.value)}
 					style="width: 100%; cursor: pointer;" />
 				<div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #666; margin-top: 4px;">
-					<span>40 Hz</span>
+					<span>20 Hz</span>
 					<span style="color: #4a9eff; font-weight: 500;">
-						{#if $flickerFrequency < 48}
-							🔴 Visible
-						{:else if $flickerFrequency < 58}
+						{#if $flickerFrequency < 40}
+							🔴 Flicker
+						{:else if $flickerFrequency < 60}
 							🟡 Fusion
 						{:else}
 							🟢 Smooth
 						{/if}
 					</span>
-					<span>70 Hz</span>
+					<span>100 Hz</span>
 				</div>
 			</div>
 
