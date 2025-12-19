@@ -575,10 +575,20 @@
 				</a>
 			</div>
 			
+			<div style="font-size: 0.8em; color: #888; font-style: italic; margin-bottom: 10px;">
+				Note: This test only affects visualization, not the exported GIF
+			</div>
+			
 			<!-- Quick Presets -->
 			<div style="margin-bottom: 12px;">
 				<div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;">Quick Presets:</div>
 				<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+					<button 
+						class="flicker-preset-btn"
+						on:click={() => flickerFrequency.set(30)}
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 30 ? '#c92a2a' : '#555'}; background: {$flickerFrequency === 30 ? '#c92a2a' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						30 Hz
+					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(42)}
@@ -609,6 +619,18 @@
 						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
 						70 Hz
 					</button>
+					<button 
+						class="flicker-preset-btn"
+						on:click={() => flickerFrequency.set(80)}
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 80 ? '#20c997' : '#555'}; background: {$flickerFrequency === 80 ? '#20c997' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						80 Hz
+					</button>
+					<button 
+						class="flicker-preset-btn"
+						on:click={() => flickerFrequency.set(100)}
+						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 100 ? '#12b886' : '#555'}; background: {$flickerFrequency === 100 ? '#12b886' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						100 Hz
+					</button>
 				</div>
 			</div>
 
@@ -620,24 +642,24 @@
 				</div>
 				<input 
 					type="range" 
-					min="40" 
-					max="70" 
+					min="20" 
+					max="100" 
 					step="0.5" 
 					value={$flickerFrequency}
 					on:input={(e)=>flickerFrequency.set(+e.target.value)}
 					style="width: 100%; cursor: pointer;" />
 				<div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #666; margin-top: 4px;">
-					<span>40 Hz</span>
+					<span>20 Hz</span>
 					<span style="color: #4a9eff; font-weight: 500;">
-						{#if $flickerFrequency < 48}
-							🔴 Visible
-						{:else if $flickerFrequency < 58}
+						{#if $flickerFrequency < 40}
+							🔴 Flicker
+						{:else if $flickerFrequency < 60}
 							🟡 Fusion
 						{:else}
 							🟢 Smooth
 						{/if}
 					</span>
-					<span>70 Hz</span>
+					<span>100 Hz</span>
 				</div>
 			</div>
 
@@ -677,7 +699,7 @@
 		<div
 			class="speed-control {dragMode ? 'dragMode' : ''} {dragging ? 'dragging' : ''} {$isMobile ? 'mobile' : ''}"
 			on:pointerdown={onOverlayPointerDown}
-			style="left: {overlayPos.left ?? 16}px; top: {overlayPos.top ?? 16}px;"
+			style="left: {overlayPos.left ?? Math.round((window.innerWidth - 200) / 2)}px; top: {overlayPos.top ?? Math.round((window.innerHeight - 80) / 2)}px;"
 		>
 			{#if dragMode || $isMobile}
 				<div class="drag-handle" title="Drag to move">⋮⋮</div>
@@ -729,7 +751,7 @@
 				<button on:click={applyManualSpeed}>Set</button>
 			</div>
 		</div>
-		<div><strong>Detected count:</strong> {_detectedCount ?? 0}</div>
+		<div><strong>Selected scenes count:</strong> {$gifFrameCount ?? 12}</div>
 		<div><strong>Suggested speed:</strong> {_suggested ? _suggested.toFixed(0) : '—'}°/s</div>
 		{#if _detectedCircle}
 			<div>
@@ -778,11 +800,7 @@
 	/* Mobile optimizations */
 	@media (max-width: 768px) {
 		.speed-control {
-			/* On mobile, make it easier to reach */
-			bottom: 80px;
-			right: 10px;
-			left: auto !important;
-			top: auto !important;
+			/* On mobile, keep it centered and movable */
 			max-width: calc(100vw - 20px);
 			padding: 16px;
 		}

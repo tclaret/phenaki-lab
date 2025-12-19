@@ -800,11 +800,7 @@
 	/* Mobile optimizations */
 	@media (max-width: 768px) {
 		.speed-control {
-			/* On mobile, make it easier to reach */
-			bottom: 80px;
-			right: 10px;
-			left: auto !important;
-			top: auto !important;
+			/* On mobile, keep it centered and movable */
 			max-width: calc(100vw - 20px);
 			padding: 16px;
 		}

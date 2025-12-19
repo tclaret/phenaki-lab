@@ -26,12 +26,14 @@
  * ```
  */
 declare module '$env/static/private' {
-	export const IMSETTINGS_INTEGRATE_DESKTOP: string;
 	export const SHELL: string;
+	export const IMSETTINGS_INTEGRATE_DESKTOP: string;
 	export const npm_command: string;
 	export const SESSION_MANAGER: string;
+	export const npm_config_userconfig: string;
 	export const COLORTERM: string;
 	export const XDG_CONFIG_DIRS: string;
+	export const npm_config_cache: string;
 	export const LESS: string;
 	export const XDG_MENU_PREFIX: string;
 	export const npm_config_npm_globalconfig: string;
@@ -48,6 +50,8 @@ declare module '$env/static/private' {
 	export const DRI_PRIME: string;
 	export const XDG_CONFIG_HOME: string;
 	export const MEMORY_PRESSURE_WRITE: string;
+	export const COLOR: string;
+	export const npm_config_local_prefix: string;
 	export const XMODIFIERS: string;
 	export const LIBVA_DRIVER_NAME: string;
 	export const DESKTOP_SESSION: string;
@@ -60,11 +64,12 @@ declare module '$env/static/private' {
 	export const WASMEDGE_LIB_DIR: string;
 	export const XDG_SEAT: string;
 	export const PWD: string;
-	export const XDG_SESSION_DESKTOP: string;
 	export const LOGNAME: string;
+	export const XDG_SESSION_DESKTOP: string;
 	export const XDG_SESSION_TYPE: string;
 	export const MODULESHOME: string;
 	export const MANPATH: string;
+	export const npm_config_init_module: string;
 	export const SYSTEMD_EXEC_PID: string;
 	export const XAUTHORITY: string;
 	export const GUESTFISH_RESTORE: string;
@@ -74,10 +79,10 @@ declare module '$env/static/private' {
 	export const HOME: string;
 	export const USERNAME: string;
 	export const SSH_ASKPASS: string;
-	export const LC_PAPER: string;
 	export const LANG: string;
-	export const LS_COLORS: string;
+	export const LC_PAPER: string;
 	export const _JAVA_AWT_WM_NONREPARENTING: string;
+	export const LS_COLORS: string;
 	export const XDG_CURRENT_DESKTOP: string;
 	export const npm_package_version: string;
 	export const MEMORY_PRESSURE_WATCH: string;
@@ -100,6 +105,7 @@ declare module '$env/static/private' {
 	export const npm_package_name: string;
 	export const CPLUS_INCLUDE_PATH: string;
 	export const PERL_MB_OPT: string;
+	export const npm_config_prefix: string;
 	export const LESSOPEN: string;
 	export const USER: string;
 	export const npm_config_frozen_lockfile: string;
@@ -130,9 +136,9 @@ declare module '$env/static/private' {
 	export const NODE_PATH: string;
 	export const __MODULES_LMINIT: string;
 	export const DEBUGINFOD_URLS: string;
-	export const DOCKER_HOST: string;
-	export const LC_TIME: string;
 	export const npm_package_json: string;
+	export const LC_TIME: string;
+	export const DOCKER_HOST: string;
 	export const BUN_INSTALL: string;
 	export const DEBUGINFOD_IMA_CERT_PATH: string;
 	export const KDEDIRS: string;
@@ -140,15 +146,18 @@ declare module '$env/static/private' {
 	export const XDG_DATA_DIRS: string;
 	export const PERL_LOCAL_LIB_ROOT: string;
 	export const KDE_FULL_SESSION: string;
+	export const npm_config_noproxy: string;
 	export const PATH: string;
 	export const __GLX_VENDOR_LIBRARY_NAME: string;
+	export const npm_config_metrics_registry: string;
 	export const npm_config_node_gyp: string;
 	export const MODULEPATH: string;
 	export const GDMSESSION: string;
 	export const GBM_BACKEND: string;
 	export const DBUS_SESSION_BUS_ADDRESS: string;
-	export const C_INCLUDE_PATH: string;
+	export const npm_config_global_prefix: string;
 	export const KDE_APPLICATIONS_AS_SCOPE: string;
+	export const C_INCLUDE_PATH: string;
 	export const npm_config_registry: string;
 	export const WASMER_CACHE_DIR: string;
 	export const QT_SCALE_FACTOR: string;
@@ -190,12 +199,14 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
-		IMSETTINGS_INTEGRATE_DESKTOP: string;
 		SHELL: string;
+		IMSETTINGS_INTEGRATE_DESKTOP: string;
 		npm_command: string;
 		SESSION_MANAGER: string;
+		npm_config_userconfig: string;
 		COLORTERM: string;
 		XDG_CONFIG_DIRS: string;
+		npm_config_cache: string;
 		LESS: string;
 		XDG_MENU_PREFIX: string;
 		npm_config_npm_globalconfig: string;
@@ -212,6 +223,8 @@ declare module '$env/dynamic/private' {
 		DRI_PRIME: string;
 		XDG_CONFIG_HOME: string;
 		MEMORY_PRESSURE_WRITE: string;
+		COLOR: string;
+		npm_config_local_prefix: string;
 		XMODIFIERS: string;
 		LIBVA_DRIVER_NAME: string;
 		DESKTOP_SESSION: string;
@@ -224,11 +237,12 @@ declare module '$env/dynamic/private' {
 		WASMEDGE_LIB_DIR: string;
 		XDG_SEAT: string;
 		PWD: string;
-		XDG_SESSION_DESKTOP: string;
 		LOGNAME: string;
+		XDG_SESSION_DESKTOP: string;
 		XDG_SESSION_TYPE: string;
 		MODULESHOME: string;
 		MANPATH: string;
+		npm_config_init_module: string;
 		SYSTEMD_EXEC_PID: string;
 		XAUTHORITY: string;
 		GUESTFISH_RESTORE: string;
@@ -238,10 +252,10 @@ declare module '$env/dynamic/private' {
 		HOME: string;
 		USERNAME: string;
 		SSH_ASKPASS: string;
-		LC_PAPER: string;
 		LANG: string;
-		LS_COLORS: string;
+		LC_PAPER: string;
 		_JAVA_AWT_WM_NONREPARENTING: string;
+		LS_COLORS: string;
 		XDG_CURRENT_DESKTOP: string;
 		npm_package_version: string;
 		MEMORY_PRESSURE_WATCH: string;
@@ -264,6 +278,7 @@ declare module '$env/dynamic/private' {
 		npm_package_name: string;
 		CPLUS_INCLUDE_PATH: string;
 		PERL_MB_OPT: string;
+		npm_config_prefix: string;
 		LESSOPEN: string;
 		USER: string;
 		npm_config_frozen_lockfile: string;
@@ -294,9 +309,9 @@ declare module '$env/dynamic/private' {
 		NODE_PATH: string;
 		__MODULES_LMINIT: string;
 		DEBUGINFOD_URLS: string;
-		DOCKER_HOST: string;
-		LC_TIME: string;
 		npm_package_json: string;
+		LC_TIME: string;
+		DOCKER_HOST: string;
 		BUN_INSTALL: string;
 		DEBUGINFOD_IMA_CERT_PATH: string;
 		KDEDIRS: string;
@@ -304,15 +319,18 @@ declare module '$env/dynamic/private' {
 		XDG_DATA_DIRS: string;
 		PERL_LOCAL_LIB_ROOT: string;
 		KDE_FULL_SESSION: string;
+		npm_config_noproxy: string;
 		PATH: string;
 		__GLX_VENDOR_LIBRARY_NAME: string;
+		npm_config_metrics_registry: string;
 		npm_config_node_gyp: string;
 		MODULEPATH: string;
 		GDMSESSION: string;
 		GBM_BACKEND: string;
 		DBUS_SESSION_BUS_ADDRESS: string;
-		C_INCLUDE_PATH: string;
+		npm_config_global_prefix: string;
 		KDE_APPLICATIONS_AS_SCOPE: string;
+		C_INCLUDE_PATH: string;
 		npm_config_registry: string;
 		WASMER_CACHE_DIR: string;
 		QT_SCALE_FACTOR: string;
