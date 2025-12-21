@@ -498,7 +498,7 @@
 			<button
 				class={!_detectedCircle ? 'detect-btn-required' : ''}
 				on:click={runDetection}
-				disabled={busy || !$imageUrl}>Detect Circle & Count</button
+				disabled={busy || !$imageUrl || $isPlaying}>Detect Circle & Count</button
 			>
 		{/if}
 		<button on:click={applySuggestedSpeed} disabled={!_suggested}>Apply Suggested Speed</button>

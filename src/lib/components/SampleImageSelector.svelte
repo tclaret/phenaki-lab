@@ -151,7 +151,7 @@
 		
 		imageUrl.set(url);
 		previewUrl.set(url);
-		isPlaying.set(true);
+		isPlaying.set(false);
 		selectedImageName.set(sample.name);
 		selectedSampleFile = sample.file;
 	}

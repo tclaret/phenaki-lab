@@ -42,7 +42,7 @@
     previewUrl.set(url);
     imageUrl.set(url);
 
-    isPlaying.set(true);
+    isPlaying.set(false);
   }
 </script>
 
