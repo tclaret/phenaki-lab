@@ -125,7 +125,8 @@
 		{ name: 'Cinémathèque 22', file: 'cinemateque_francaise_22.png', repo: 'new' },
 		{ name: 'Cinémathèque 23', file: 'cinemateque_francaise_23.png', repo: 'new' },
 		{ name: 'Cinémathèque 24', file: 'cinemateque_francaise_24.png', repo: 'new' },
-		{ name: 'Cinémathèque 25', file: 'cinemateque_francaise_25.png', repo: 'new' }
+		{ name: 'Cinémathèque 25', file: 'cinemateque_francaise_25.png', repo: 'new' },
+		{ name: 'Phenakistoscope 3g07692a', file: 'Phenakistoscope_3g07692a.jpg', repo: 'new' }
 	];
 
 	let selectedSampleFile = '';
