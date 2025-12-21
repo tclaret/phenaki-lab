@@ -18,7 +18,9 @@
 		canvasTransform,
 		isMobile,
 		gifFrameCount,
-		userAdjustedSpeed
+		userAdjustedSpeed,
+		sliceRotationAngle,
+		editModeInteraction
 	} from '../store';
 
 	let wrapper;
@@ -40,7 +42,12 @@
 		translateX = 0;
 		translateY = 0;
 		scale = 1;
+		// Reset to move-center mode when entering edit mode
+		editModeInteraction.set('move-center');
 		drawFrame();
+	} else {
+		// Reset slice rotation angle when leaving edit mode
+		sliceRotationAngle.set(0);
 	}
 	
 	// Clear confirmed crosshair when playing starts
@@ -69,6 +76,9 @@
 	let lastTapTime = 0;
 	let lastTapX = 0;
 	let lastTapY = 0;
+	// For slice rotation in edit mode
+	let sliceRotationStartAngle = 0;
+	let pointerStartAngle = 0;
 
 	let htmlImg = null;
 	let imageReady = false;
@@ -217,14 +227,22 @@
 		// track pointer for pinch/zoom
 		pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-		// Double-tap detection: check if this is a second tap within 300ms and ~50px
+		// Double-tap detection in edit mode: toggle between move-center and rotate-slices modes
 		const now = Date.now();
 		const dx = e.clientX - lastTapX;
 		const dy = e.clientY - lastTapY;
 		const distance = Math.sqrt(dx * dx + dy * dy);
-		if (now - lastTapTime < 300 && distance < 50 && !$editMode) {
-			// Double-tap detected: toggle play/pause (disabled in edit mode)
-			isPlaying.update((v) => !v);
+		if (now - lastTapTime < 300 && distance < 50) {
+			if ($editMode) {
+				// Double-tap in edit mode: toggle interaction mode
+				editModeInteraction.update((mode) =>
+					mode === 'move-center' ? 'rotate-slices' : 'move-center'
+				);
+				drawFrame();
+			} else {
+				// Double-tap outside edit mode: toggle play/pause
+				isPlaying.update((v) => !v);
+			}
 			// reset pointers
 			pointers.clear();
 			lastTapTime = 0;
@@ -240,6 +258,19 @@
 			lastPanY = e.clientY;
 			pointerStartY = e.clientY;
 			pointerStartSpeed = $rotationSpeed || 1;
+			
+			// In edit mode with rotate-slices, store starting angle
+			if ($editMode && $editModeInteraction === 'rotate-slices') {
+				const rect = wrapper.getBoundingClientRect();
+				const cw = canvas.clientWidth;
+				const ch = canvas.clientHeight;
+				const centerX = rect.left + cw / 2;
+				const centerY = rect.top + ch / 2;
+				const dx = e.clientX - centerX;
+				const dy = e.clientY - centerY;
+				pointerStartAngle = Math.atan2(dy, dx);
+				sliceRotationStartAngle = $sliceRotationAngle;
+			}
 		}
 		// initialize pinch
 		if (pointers.size === 2) {
@@ -314,7 +345,25 @@
 		// single pointer: if zoomed OR in edit mode, pan; else adjust speed vertical drag
 		if (pointers.size === 1) {
 			const p = pointers.values().next().value;
-			if (scale > 1 || $editMode) {
+			
+			// In edit mode with rotate-slices: rotate the pie slices
+			if ($editMode && $editModeInteraction === 'rotate-slices') {
+				const rect = wrapper.getBoundingClientRect();
+				const cw = canvas.clientWidth;
+				const ch = canvas.clientHeight;
+				const centerX = rect.left + cw / 2;
+				const centerY = rect.top + ch / 2;
+				const dx = e.clientX - centerX;
+				const dy = e.clientY - centerY;
+				const currentAngle = Math.atan2(dy, dx);
+				const deltaAngle = currentAngle - pointerStartAngle;
+				sliceRotationAngle.set(sliceRotationStartAngle + deltaAngle);
+				drawFrame();
+				return;
+			}
+			
+			// In edit mode with move-center: pan
+			if (scale > 1 || ($editMode && $editModeInteraction === 'move-center')) {
 				const dx = e.clientX - lastPanX;
 				const dy = e.clientY - lastPanY;
 				translateX += dx;
@@ -864,9 +913,12 @@
 				const sliceRadius = Math.min(cw, ch) * 0.3;
 				const angleStep = (Math.PI * 2) / sliceCount;
 				
+				// Apply rotation angle from user interaction
+				const rotationOffset = $sliceRotationAngle;
+				
 				// Draw pie slices
 				for (let i = 0; i < sliceCount; i++) {
-					const startAngle = i * angleStep - Math.PI / 2; // Start from top
+					const startAngle = i * angleStep - Math.PI / 2 + rotationOffset; // Start from top + rotation
 					const endAngle = startAngle + angleStep;
 					
 					// Alternating colors for each slice
@@ -950,7 +1002,11 @@
 	{/if}
 	{#if $editMode}
 		<div class="edit-mode-indicator">
-			⚙️ EDIT MODE - Drag to position • Scroll to zoom
+			{#if $editModeInteraction === 'move-center'}
+				🎯 EDIT MODE - Drag to position • Scroll to zoom • Double-tap to rotate slices
+			{:else}
+				🔄 ROTATE SLICES - Drag to rotate • Double-tap to move center
+			{/if}
 		</div>
 		
 		<!-- Frame count adjuster overlay -->

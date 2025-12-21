@@ -18,7 +18,11 @@
 		canvasTransform,
 		isMobile,
 		gifFrameCount,
-		userAdjustedSpeed
+		userAdjustedSpeed,
+		sliceRotationAngle,
+		editModeInteraction,
+		fillOuterCircle,
+		outerCircleFillColor
 	} from '$lib/store';
 
 	let wrapper;
@@ -40,7 +44,12 @@
 		translateX = 0;
 		translateY = 0;
 		scale = 1;
+		// Reset to move-center mode when entering edit mode
+		editModeInteraction.set('move-center');
 		drawFrame();
+	} else {
+		// Reset slice rotation angle when leaving edit mode
+		sliceRotationAngle.set(0);
 	}
 	
 	// Clear confirmed crosshair when playing starts
@@ -69,6 +78,9 @@
 	let lastTapTime = 0;
 	let lastTapX = 0;
 	let lastTapY = 0;
+	// For slice rotation in edit mode
+	let sliceRotationStartAngle = 0;
+	let pointerStartAngle = 0;
 
 	let htmlImg = null;
 	let imageReady = false;
@@ -217,14 +229,22 @@
 		// track pointer for pinch/zoom
 		pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-		// Double-tap detection: check if this is a second tap within 300ms and ~50px
+		// Double-tap detection in edit mode: toggle between move-center and rotate-slices modes
 		const now = Date.now();
 		const dx = e.clientX - lastTapX;
 		const dy = e.clientY - lastTapY;
 		const distance = Math.sqrt(dx * dx + dy * dy);
-		if (now - lastTapTime < 300 && distance < 50 && !$editMode) {
-			// Double-tap detected: toggle play/pause (disabled in edit mode)
-			isPlaying.update((v) => !v);
+		if (now - lastTapTime < 300 && distance < 50) {
+			if ($editMode) {
+				// Double-tap in edit mode: toggle interaction mode
+				editModeInteraction.update((mode) =>
+					mode === 'move-center' ? 'rotate-slices' : 'move-center'
+				);
+				drawFrame();
+			} else {
+				// Double-tap outside edit mode: toggle play/pause
+				isPlaying.update((v) => !v);
+			}
 			// reset pointers
 			pointers.clear();
 			lastTapTime = 0;
@@ -240,6 +260,19 @@
 			lastPanY = e.clientY;
 			pointerStartY = e.clientY;
 			pointerStartSpeed = $rotationSpeed || 1;
+			
+			// In edit mode with rotate-slices, store starting angle
+			if ($editMode && $editModeInteraction === 'rotate-slices') {
+				const rect = wrapper.getBoundingClientRect();
+				const cw = canvas.clientWidth;
+				const ch = canvas.clientHeight;
+				const centerX = rect.left + cw / 2;
+				const centerY = rect.top + ch / 2;
+				const dx = e.clientX - centerX;
+				const dy = e.clientY - centerY;
+				pointerStartAngle = Math.atan2(dy, dx);
+				sliceRotationStartAngle = $sliceRotationAngle;
+			}
 		}
 		// initialize pinch
 		if (pointers.size === 2) {
@@ -314,7 +347,25 @@
 		// single pointer: if zoomed OR in edit mode, pan; else adjust speed vertical drag
 		if (pointers.size === 1) {
 			const p = pointers.values().next().value;
-			if (scale > 1 || $editMode) {
+			
+			// In edit mode with rotate-slices: rotate the pie slices
+			if ($editMode && $editModeInteraction === 'rotate-slices') {
+				const rect = wrapper.getBoundingClientRect();
+				const cw = canvas.clientWidth;
+				const ch = canvas.clientHeight;
+				const centerX = rect.left + cw / 2;
+				const centerY = rect.top + ch / 2;
+				const dx = e.clientX - centerX;
+				const dy = e.clientY - centerY;
+				const currentAngle = Math.atan2(dy, dx);
+				const deltaAngle = currentAngle - pointerStartAngle;
+				sliceRotationAngle.set(sliceRotationStartAngle + deltaAngle);
+				drawFrame();
+				return;
+			}
+			
+			// In edit mode with move-center: pan
+			if (scale > 1 || ($editMode && $editModeInteraction === 'move-center')) {
 				const dx = e.clientX - lastPanX;
 				const dy = e.clientY - lastPanY;
 				translateX += dx;
@@ -458,6 +509,15 @@
 		const ch = canvas.clientHeight;
 
 		ctx.clearRect(0, 0, cw, ch);
+		
+		// Fill outer circle with selected color if enabled
+		if ($fillOuterCircle && $detectedCircle) {
+			ctx.save();
+			ctx.fillStyle = $outerCircleFillColor;
+			ctx.fillRect(0, 0, cw, ch);
+			ctx.restore();
+		}
+		
 		ctx.save();
 
 		// Calculate "contain" sizing
@@ -864,9 +924,12 @@
 				const sliceRadius = Math.min(cw, ch) * 0.3;
 				const angleStep = (Math.PI * 2) / sliceCount;
 				
+				// Apply rotation angle from user interaction
+				const rotationOffset = $sliceRotationAngle;
+				
 				// Draw pie slices
 				for (let i = 0; i < sliceCount; i++) {
-					const startAngle = i * angleStep - Math.PI / 2; // Start from top
+					const startAngle = i * angleStep - Math.PI / 2 + rotationOffset; // Start from top + rotation
 					const endAngle = startAngle + angleStep;
 					
 					// Alternating colors for each slice
@@ -950,8 +1013,22 @@
 	{/if}
 	{#if $editMode}
 		<div class="edit-mode-indicator">
-			⚙️ EDIT MODE - Drag to position • Scroll to zoom
+			{#if $editModeInteraction === 'move-center'}
+				🎯 EDIT MODE - Drag to position • Scroll to zoom • Double-tap to rotate slices
+			{:else}
+				🔄 ROTATE SLICES - Drag to rotate • Double-tap to move center
+			{/if}
 		</div>
+		
+		<!-- Crosshair overlay - fixed reference point to help center rotation -->
+		{#if $editModeInteraction === 'move-center'}
+			<div class="crosshair-overlay">
+				<div class="crosshair-vertical"></div>
+				<div class="crosshair-horizontal"></div>
+				<div class="crosshair-center-dot"></div>
+				<div class="crosshair-circle"></div>
+			</div>
+		{/if}
 		
 		<!-- Frame count adjuster overlay -->
 		<div class="frame-counter">
@@ -1170,6 +1247,115 @@
 		
 		.frame-number {
 			font-size: 36px;
+		}
+	}
+	
+	/* Crosshair overlay - fixed reference for centering rotation point */
+	.crosshair-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		z-index: 10;
+	}
+	
+	.crosshair-vertical {
+		position: absolute;
+		left: 50%;
+		top: 0;
+		bottom: 0;
+		width: 2px;
+		background: linear-gradient(
+			to bottom,
+			transparent 0%,
+			rgba(255, 100, 0, 0.6) 20%,
+			rgba(255, 100, 0, 0.8) 50%,
+			rgba(255, 100, 0, 0.6) 80%,
+			transparent 100%
+		);
+		transform: translateX(-50%);
+		animation: pulse-crosshair 2s ease-in-out infinite;
+	}
+	
+	.crosshair-horizontal {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		height: 2px;
+		background: linear-gradient(
+			to right,
+			transparent 0%,
+			rgba(255, 100, 0, 0.6) 20%,
+			rgba(255, 100, 0, 0.8) 50%,
+			rgba(255, 100, 0, 0.6) 80%,
+			transparent 100%
+		);
+		transform: translateY(-50%);
+		animation: pulse-crosshair 2s ease-in-out infinite;
+	}
+	
+	.crosshair-circle {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 80px;
+		height: 80px;
+		border: 3px solid rgba(255, 100, 0, 0.7);
+		border-radius: 50%;
+		transform: translate(-50%, -50%);
+		animation: pulse-circle 2s ease-in-out infinite;
+	}
+	
+	.crosshair-center-dot {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 12px;
+		height: 12px;
+		background: radial-gradient(
+			circle,
+			rgba(255, 255, 255, 1) 0%,
+			rgba(255, 100, 0, 0.9) 50%,
+			rgba(255, 100, 0, 0.7) 100%
+		);
+		border: 2px solid rgba(255, 255, 255, 0.9);
+		border-radius: 50%;
+		transform: translate(-50%, -50%);
+		box-shadow: 0 0 10px rgba(255, 100, 0, 0.8);
+		animation: pulse-dot 2s ease-in-out infinite;
+	}
+	
+	@keyframes pulse-crosshair {
+		0%, 100% {
+			opacity: 0.6;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+	
+	@keyframes pulse-circle {
+		0%, 100% {
+			opacity: 0.5;
+			transform: translate(-50%, -50%) scale(1);
+		}
+		50% {
+			opacity: 0.9;
+			transform: translate(-50%, -50%) scale(1.05);
+		}
+	}
+	
+	@keyframes pulse-dot {
+		0%, 100% {
+			transform: translate(-50%, -50%) scale(1);
+			box-shadow: 0 0 10px rgba(255, 100, 0, 0.8);
+		}
+		50% {
+			transform: translate(-50%, -50%) scale(1.2);
+			box-shadow: 0 0 20px rgba(255, 100, 0, 1);
 		}
 	}
 	

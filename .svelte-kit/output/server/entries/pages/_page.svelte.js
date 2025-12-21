@@ -35,6 +35,8 @@ const flickerEnabled = writable(false);
 const flickerFrequency = writable(50);
 const isMobile = writable(false);
 const gifFrameCount = writable(null);
+const sliceRotationAngle = writable(0);
+const editModeInteraction = writable("move-center");
 function FileUploader($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     $$renderer2.push(`<label>Choose image: <input type="file" accept="image/*"/></label>`);
@@ -405,8 +407,9 @@ function CanvasPlayer($$renderer, $$props) {
         if (store_get($$store_subs ??= {}, "$editMode", editMode) && sliceCount > 0) {
           const sliceRadius = Math.min(cw, ch) * 0.3;
           const angleStep = Math.PI * 2 / sliceCount;
+          const rotationOffset = store_get($$store_subs ??= {}, "$sliceRotationAngle", sliceRotationAngle);
           for (let i = 0; i < sliceCount; i++) {
-            const startAngle = i * angleStep - Math.PI / 2;
+            const startAngle = i * angleStep - Math.PI / 2 + rotationOffset;
             const endAngle = startAngle + angleStep;
             const sliceAlpha = 0.15 + 0.1 * (i % 2 * 0.5);
             ctx.fillStyle = `rgba(100, 200, 255, ${sliceAlpha})`;
@@ -461,7 +464,10 @@ function CanvasPlayer($$renderer, $$props) {
       translateX = 0;
       translateY = 0;
       scale = 1;
+      editModeInteraction.set("move-center");
       drawFrame();
+    } else {
+      sliceRotationAngle.set(0);
     }
     canvasTransform.set({ translateX, translateY, scale });
     if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying)) {
@@ -567,8 +573,9 @@ function CanvasPlayer($$renderer, $$props) {
         // Draw in canvas coordinates (center of viewport)
         // Draw "pie slices" in edit mode based on user-entered frame count
         // Use gifFrameCount if set, otherwise fall back to detectedCount, with minimum of 6
+        // Apply rotation angle from user interaction
         // Draw pie slices
-        // Start from top
+        // Start from top + rotation
         // Alternating colors for each slice
         // Draw slice borders
         // Outer circle for the pie
@@ -591,7 +598,15 @@ function CanvasPlayer($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="edit-mode-indicator svelte-byh4af">⚙️ EDIT MODE - Drag to position • Scroll to zoom</div> <div class="frame-counter svelte-byh4af"><div class="frame-info svelte-byh4af"><div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;" class="svelte-byh4af">How many scenes on the disc?</div> <div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;" class="svelte-byh4af">Set frame count = number of animation scenes</div></div> <div style="display: flex; align-items: center; gap: 8px;" class="svelte-byh4af"><button class="frame-btn svelte-byh4af" title="Decrease frame count">−</button> <div class="frame-display svelte-byh4af"><div class="frame-number svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || 12)}</div> <div class="frame-label svelte-byh4af">frames</div></div> <button class="frame-btn svelte-byh4af" title="Increase frame count">+</button></div></div>`);
+      $$renderer2.push(`<div class="edit-mode-indicator svelte-byh4af">`);
+      if (store_get($$store_subs ??= {}, "$editModeInteraction", editModeInteraction) === "move-center") {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`🎯 EDIT MODE - Drag to position • Scroll to zoom • Double-tap to rotate slices`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+        $$renderer2.push(`🔄 ROTATE SLICES - Drag to rotate • Double-tap to move center`);
+      }
+      $$renderer2.push(`<!--]--></div> <div class="frame-counter svelte-byh4af"><div class="frame-info svelte-byh4af"><div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;" class="svelte-byh4af">How many scenes on the disc?</div> <div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;" class="svelte-byh4af">Set frame count = number of animation scenes</div></div> <div style="display: flex; align-items: center; gap: 8px;" class="svelte-byh4af"><button class="frame-btn svelte-byh4af" title="Decrease frame count">−</button> <div class="frame-display svelte-byh4af"><div class="frame-number svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || 12)}</div> <div class="frame-label svelte-byh4af">frames</div></div> <button class="frame-btn svelte-byh4af" title="Increase frame count">+</button></div></div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -863,6 +878,141 @@ function SampleImageSelector($$renderer, $$props) {
       },
       { name: "S-L1600 1", file: "s-l1600_1.jpg", repo: "new" },
       { name: "S-L1600", file: "s-l1600.jpg", repo: "new" },
+      {
+        name: "Hash 045377",
+        file: "045377654e8832d31b850c8c4b7f948b.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 062901",
+        file: "062901e866b6aca4078ae7ff0be74c24.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 0a23fe",
+        file: "0a23fe78862b095518e46a3472238510.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 14ea08",
+        file: "14ea08f701861d967d455220ea8ca7ed.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 1928bd",
+        file: "1928bda6cad5fd3cd27d13ce70a502dc.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 2d003d",
+        file: "2d003d9b4e81a933bbfbdd55c8b1e261.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 2e4cd2",
+        file: "2e4cd248fbe57af9798c7e3c1c23b58c.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 40bd2a",
+        file: "40bd2aead0fc9a6e77d23871555a2998.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 43efde",
+        file: "43efdef999a2fa3200506f97d9e1ef10.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 494697",
+        file: "49469753b75adf62fe324641a2869c53.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 4ca70e",
+        file: "4ca70ec79b59935fb0eed9992045e4fb.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 4e6b0c",
+        file: "4e6b0c0e4fde0ad2ad8f4797304b037b.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 4f3ab9",
+        file: "4f3ab9e63d43062d25dfc6e4108635fb.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 686b5e",
+        file: "686b5e679b990dd996d0a4a3fb943d2d.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 6f5755",
+        file: "6f57558627d849a8d2b3f9a430bacba2.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 75fd29",
+        file: "75fd29a0318c3cf0fdaf8a41d1406cf2.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 8efd4b",
+        file: "8efd4b2b51765d9efdde621251b08968.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 90cbee",
+        file: "90cbeedafdef22534d24d04bc44b518f.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash 954abf",
+        file: "954abf22a1f89759204818d3c0592234.png",
+        repo: "new"
+      },
+      {
+        name: "Hash 9799d6",
+        file: "9799d6d1766b1add766629adec031867.png",
+        repo: "new"
+      },
+      {
+        name: "Hash a0767f",
+        file: "a0767fc0712f1a9eeac238e72b6b2721.png",
+        repo: "new"
+      },
+      {
+        name: "Hash b18a11",
+        file: "b18a11d1a8355081b70a3d91347236b1.jpg",
+        repo: "new"
+      },
+      {
+        name: "Hash bf2932",
+        file: "bf29325ee951619c061902200c8e1143.png",
+        repo: "new"
+      },
+      {
+        name: "Hash e1de4a",
+        file: "e1de4a32cb1bafa33166d51bf8ae2f35.png",
+        repo: "new"
+      },
+      {
+        name: "Hash e59f95",
+        file: "e59f952d6ef4e9c391ea10e143e55b23.png",
+        repo: "new"
+      },
+      {
+        name: "Hash e6582e",
+        file: "e6582e848b0aca99c134d23365c08fdb.png",
+        repo: "new"
+      },
+      {
+        name: "Hash ebd3d3",
+        file: "ebd3d33285d243f86e54df78b9cc69ac.png",
+        repo: "new"
+      },
       {
         name: "Woman Chopping Tree",
         file: "WomanChoppingTree.jpg",

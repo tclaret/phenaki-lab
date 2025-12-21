@@ -1,5 +1,5 @@
 export function sliceDisk(canvas, count = 24, opts = {}) {
-  // opts: { circle: {x,y,r}, outputSize, margin, zoom, fps, rotationSpeed (deg/sec), direction }
+  // opts: { circle: {x,y,r}, outputSize, margin, zoom, fps, rotationSpeed (deg/sec), direction, initialRotation (radians) }
   const frames = [];
   const { width: srcW, height: srcH } = canvas;
 
@@ -16,6 +16,7 @@ export function sliceDisk(canvas, count = 24, opts = {}) {
   const fps = opts.fps || 24;
   const rotationSpeed = typeof opts.rotationSpeed === 'number' ? opts.rotationSpeed : 0; // deg/sec
   const direction = opts.direction == null ? 1 : opts.direction; // 1 or -1
+  const initialRotation = opts.initialRotation || 0; // radians
 
   // Create a cropped circular image (with transparent outside)
   const crop = document.createElement('canvas');
@@ -56,7 +57,7 @@ export function sliceDisk(canvas, count = 24, opts = {}) {
   const cropDrawSize = Math.round(diameterSrc * (opts.zoom || 1));
 
   for (let i = 0; i < count; i++) {
-    const angle = i * deltaRad;
+    const angle = i * deltaRad + initialRotation; // Apply initial rotation offset
 
     const off = document.createElement('canvas');
     off.width = outputSize;

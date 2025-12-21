@@ -18,7 +18,10 @@
 		flickerEnabled,
 		flickerFrequency,
 		gifFrameCount,
-		userAdjustedSpeed
+		userAdjustedSpeed,
+		sliceRotationAngle,
+		fillOuterCircle,
+		outerCircleFillColor
 	} from '$lib/store';
 	// also import detectedPositions which is set by runDetection
 	import { detectedPositions } from '$lib/store';
@@ -302,6 +305,13 @@
 			// This ensures smooth looping regardless of playback speed
 			const degreesPerFrame = 360 / count;
 			
+			// Get the user-defined slice rotation angle for proper alignment
+			const userRotationAngle = get(sliceRotationAngle) || 0; // in radians
+			
+			// Get fill outer circle options
+			const shouldFillOuter = get(fillOuterCircle);
+			const fillColor = get(outerCircleFillColor);
+			
 			const frames = sliceDisk(canvas, count, {
 				circle,
 				// Don't pass outputSize - let sliceDisk calculate it from circle + margin
@@ -309,7 +319,10 @@
 				zoom: 1,
 				fps: gifFps,
 				rotationSpeed: degreesPerFrame * gifFps, // Convert to deg/sec for sliceDisk
-				direction: directionValue
+				direction: directionValue,
+				initialRotation: userRotationAngle, // Apply user's rotation adjustment
+				fillOuterCircle: shouldFillOuter,
+				fillColor: fillColor
 			});
 
 			// Export with selected FPS for smooth animation
@@ -552,6 +565,21 @@
 				<span style="background: #4a9eff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; margin-left: 4px;">
 					{$flickerFrequency} Hz
 				</span>
+			{/if}
+		</label>
+		<label style="display:flex;align-items:center;gap:6px;margin-left:6px;">
+			<input
+				type="checkbox"
+				bind:checked={$fillOuterCircle}
+			/>
+			<span>Fill Outer Circle</span>
+			{#if $fillOuterCircle}
+				<input
+					type="color"
+					bind:value={$outerCircleFillColor}
+					style="width:40px;height:28px;border:1px solid #555;border-radius:4px;cursor:pointer;margin-left:4px;"
+					title="Choose fill color"
+				/>
 			{/if}
 		</label>
 	</div>

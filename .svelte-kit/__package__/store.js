@@ -68,3 +68,9 @@ export const isMobile = writable(false);
 
 // User-defined frame count for GIF export (null = auto-detect)
 export const gifFrameCount = writable(null);
+
+// Slice rotation angle in edit mode (in radians)
+export const sliceRotationAngle = writable(0);
+
+// Edit mode interaction state: 'move-center' (default) or 'rotate-slices'
+export const editModeInteraction = writable('move-center');

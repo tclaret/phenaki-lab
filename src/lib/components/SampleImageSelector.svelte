@@ -1,6 +1,24 @@
 <script>
 	import { onMount } from 'svelte';
-	import { imageUrl, previewUrl, isPlaying, selectedImageName } from '$lib/store';
+	import { 
+		imageUrl, 
+		previewUrl, 
+		isPlaying, 
+		selectedImageName,
+		detectedCircle,
+		detectedCount,
+		detectedPositions,
+		confirmedDetection,
+		editMode,
+		sliceRotationAngle,
+		editModeInteraction,
+		rotationSpeed,
+		suggestedRotationSpeed,
+		gifFrameCount,
+		userAdjustedSpeed,
+		fillOuterCircle,
+		outerCircleFillColor
+	} from '../store';
 
 	const GITHUB_RAW_URL_OLD =
 		'https://raw.githubusercontent.com/tclaret/phenakistoscope-simulator/main/images';
@@ -115,6 +133,22 @@
 	function selectSample(sample) {
 		const baseUrl = sample.repo === 'new' ? GITHUB_RAW_URL_NEW : GITHUB_RAW_URL_OLD;
 		const url = `${baseUrl}/${sample.file}`;
+		
+		// Reset all contexts when loading a new image
+		detectedCircle.set(null);
+		detectedCount.set(0);
+		detectedPositions.set([]);
+		confirmedDetection.set(false);
+		editMode.set(false);
+		sliceRotationAngle.set(0);
+		editModeInteraction.set('move-center');
+		rotationSpeed.set(0);
+		suggestedRotationSpeed.set(1);
+		gifFrameCount.set(null);
+		userAdjustedSpeed.set(false);
+		fillOuterCircle.set(false);
+		outerCircleFillColor.set('#000000');
+		
 		imageUrl.set(url);
 		previewUrl.set(url);
 		isPlaying.set(true);

@@ -18,7 +18,8 @@
 		flickerEnabled,
 		flickerFrequency,
 		gifFrameCount,
-		userAdjustedSpeed
+		userAdjustedSpeed,
+		sliceRotationAngle
 	} from '../store';
 	// also import detectedPositions which is set by runDetection
 	import { detectedPositions } from '../store';
@@ -302,6 +303,9 @@
 			// This ensures smooth looping regardless of playback speed
 			const degreesPerFrame = 360 / count;
 			
+			// Get the user-defined slice rotation angle for proper alignment
+			const userRotationAngle = get(sliceRotationAngle) || 0; // in radians
+			
 			const frames = sliceDisk(canvas, count, {
 				circle,
 				// Don't pass outputSize - let sliceDisk calculate it from circle + margin
@@ -309,7 +313,8 @@
 				zoom: 1,
 				fps: gifFps,
 				rotationSpeed: degreesPerFrame * gifFps, // Convert to deg/sec for sliceDisk
-				direction: directionValue
+				direction: directionValue,
+				initialRotation: userRotationAngle // Apply user's rotation adjustment
 			});
 
 			// Export with selected FPS for smooth animation
