@@ -126,7 +126,22 @@
 		{ name: 'Cinémathèque 23', file: 'cinemateque_francaise_23.png', repo: 'new' },
 		{ name: 'Cinémathèque 24', file: 'cinemateque_francaise_24.png', repo: 'new' },
 		{ name: 'Cinémathèque 25', file: 'cinemateque_francaise_25.png', repo: 'new' },
-		{ name: 'Phenakistoscope 3g07692a', file: 'Phenakistoscope_3g07692a.jpg', repo: 'new' }
+		{ name: 'Cinémathèque 26', file: 'cinemateque_francaise_26.png', repo: 'new' },
+		{ name: 'Cinémathèque 27', file: 'cinemateque_francaise_27.png', repo: 'new' },
+		{ name: 'Cinémathèque 28', file: 'cinemateque_francaise_28.png', repo: 'new' },
+		{ name: 'Cinémathèque 29', file: 'cinemateque_francaise_29.png', repo: 'new' },
+		{ name: 'Cinémathèque 30', file: 'cinemateque_francaise_30.png', repo: 'new' },
+		{ name: 'Phenakistoscope 3g07692a', file: 'Phenakistoscope_3g07692a.jpg', repo: 'new' },
+		{ name: 'Phenakistoscope 3g07692u', file: 'Phenakistoscope_3g07692u.jpg', repo: 'new' },
+		{ name: 'Lebensrad 01', file: 'Lebensrad01.jpg', repo: 'new' },
+		{ name: 'Dance Dance', file: 'Dance_dance.png', repo: 'new' },
+		{ name: 'Download', file: 'download.png', repo: 'new' },
+		{ name: 'S-L1600 PNG', file: 's-l1600.png', repo: 'new' },
+		{ name: '1200px Cats and Donkey', file: '1200px-Optical_Toy,_Phenakistiscope_Disc_with_Cats_and_Donkey,_ca._1830_(CH_18607981).jpg', repo: 'new' },
+		{ name: 'Photographic Pastimes', file: 'Photographic_pastimes_-_a_series_of_interesting_experiments_for_amateurs_for_obtaining_novel_and_curious_effects_with_the_aid_of_the_camera_(1891)_(14766082535).jpg', repo: 'new' },
+		{ name: 'IL 1588 2019925483', file: 'il_1588xN.2019925483_gcfc.jpg', repo: 'new' },
+		{ name: 'IL 1588 7127245108', file: 'il_1588xN.7127245108_4tnw.png', repo: 'new' },
+		{ name: 'IL 1588 7287092618', file: 'il_1588xN.7287092618_bs1i.png', repo: 'new' }
 	];
 
 	let selectedSampleFile = '';

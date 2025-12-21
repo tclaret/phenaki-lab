@@ -1,4 +1,4 @@
-import { V as store_get, W as attr, X as unsubscribe_stores, Y as attr_class, Z as stringify, _ as clsx, $ as attr_style, a0 as ensure_array_like } from "../../chunks/index2.js";
+import { V as store_get, W as attr, X as unsubscribe_stores, Y as attr_class, Z as stringify, _ as attr_style, $ as clsx, a0 as ensure_array_like } from "../../chunks/index2.js";
 import { w as writable } from "../../chunks/index.js";
 import { b as ssr_context, e as escape_html } from "../../chunks/context.js";
 import "gif.js";
@@ -37,6 +37,8 @@ const isMobile = writable(false);
 const gifFrameCount = writable(null);
 const sliceRotationAngle = writable(0);
 const editModeInteraction = writable("move-center");
+const fillOuterCircle = writable(false);
+const outerCircleFillColor = writable("#000000");
 function FileUploader($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     $$renderer2.push(`<label>Choose image: <input type="file" accept="image/*"/></label>`);
@@ -66,6 +68,8 @@ function CanvasPlayer($$renderer, $$props) {
     let translateY = 0;
     let raf;
     let lastTime = 0;
+    let speedHudX = null;
+    let speedHudY = null;
     let htmlImg = null;
     let imageReady = false;
     function loadImage(url) {
@@ -115,6 +119,12 @@ function CanvasPlayer($$renderer, $$props) {
       const cw = canvas.clientWidth;
       const ch = canvas.clientHeight;
       ctx.clearRect(0, 0, cw, ch);
+      if (store_get($$store_subs ??= {}, "$fillOuterCircle", fillOuterCircle) && store_get($$store_subs ??= {}, "$detectedCircle", detectedCircle)) {
+        ctx.save();
+        ctx.fillStyle = store_get($$store_subs ??= {}, "$outerCircleFillColor", outerCircleFillColor);
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.restore();
+      }
       ctx.save();
       const imageRatio = htmlImg.width / htmlImg.height;
       const canvasRatio = cw / ch;
@@ -149,31 +159,55 @@ function CanvasPlayer($$renderer, $$props) {
           const cr = c.r * scaleImg;
           const radarTime = Date.now() / 1e3;
           const radarAngle = radarTime * Math.PI * 0.5 % (Math.PI * 2);
+          const stroboFreq = 2.5;
+          const stroboPhase = radarTime * stroboFreq * Math.PI * 2;
+          const stroboIntensity = Math.abs(Math.sin(stroboPhase));
           const pulsePhase = radarTime * 0.8 % 2;
-          const pulseRadius = cr * (0.8 + pulsePhase * 0.4);
-          const pulseOpacity = Math.max(0, 0.3 * (1 - pulsePhase / 2));
+          const sinModulation = Math.sin(radarTime * 3) * 0.1;
+          const tanModulation = Math.tan(radarTime * 0.5) * 0.05;
+          const pulseRadius = cr * (0.8 + pulsePhase * 0.4 + sinModulation + Math.min(Math.max(tanModulation, -0.1), 0.1));
+          const pulseOpacity = Math.max(0, 0.3 * (1 - pulsePhase / 2) * stroboIntensity);
           ctx.beginPath();
           ctx.strokeStyle = `rgba(0, 255, 255, ${pulseOpacity})`;
           ctx.lineWidth = 2;
           ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
           ctx.stroke();
+          const numStroboLines = 16;
+          for (let i = 0; i < numStroboLines; i++) {
+            const baseAngle = i / numStroboLines * Math.PI * 2;
+            const sinOffset = Math.sin(radarTime * 2 + i * 0.5) * 0.2;
+            const lineAngle = baseAngle + sinOffset;
+            const lineLength = cr * (0.7 + Math.sin(radarTime * 3 + i) * 0.2) * stroboIntensity;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${stroboIntensity * 0.3})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(lineAngle) * lineLength, Math.sin(lineAngle) * lineLength);
+            ctx.stroke();
+            ctx.restore();
+          }
           ctx.save();
           ctx.translate(cx, cy);
           ctx.rotate(radarAngle);
-          ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
-          ctx.lineWidth = 2;
+          const radarOpacity = 0.4 + stroboIntensity * 0.3;
+          ctx.strokeStyle = `rgba(0, 255, 255, ${radarOpacity})`;
+          ctx.lineWidth = 2 + stroboIntensity * 2;
           ctx.beginPath();
           ctx.moveTo(0, 0);
           ctx.lineTo(cr * 1.1, 0);
           ctx.stroke();
           ctx.restore();
-          ctx.strokeStyle = "rgba(0, 255, 255, 0.1)";
+          ctx.strokeStyle = `rgba(0, 255, 255, ${0.1 + stroboIntensity * 0.15})`;
           ctx.lineWidth = 1;
           for (let i = 0; i < 8; i++) {
             const gridAngle = i / 8 * Math.PI * 2;
+            const tanWave = Math.tan(radarTime + i * 0.3) * 0.1;
+            const gridLength = cr * (1 + Math.min(Math.max(tanWave, -0.15), 0.15));
             ctx.beginPath();
             ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + Math.cos(gridAngle) * cr, cy + Math.sin(gridAngle) * cr);
+            ctx.lineTo(cx + Math.cos(gridAngle) * gridLength, cy + Math.sin(gridAngle) * gridLength);
             ctx.stroke();
             if (i % 2 === 0) {
               const angleDeg = Math.round(gridAngle * 180 / Math.PI % 360);
@@ -181,26 +215,30 @@ function CanvasPlayer($$renderer, $$props) {
               const lx = cx + Math.cos(gridAngle) * labelDist;
               const ly = cy + Math.sin(gridAngle) * labelDist;
               ctx.font = "bold 10px monospace";
-              ctx.fillStyle = "rgba(0, 255, 255, 0.7)";
+              ctx.fillStyle = `rgba(0, 255, 255, ${0.7 * stroboIntensity})`;
               ctx.textAlign = "center";
               ctx.textBaseline = "middle";
               ctx.fillText(`${angleDeg}°`, lx, ly);
             }
           }
-          const mathOpacity = 0.6;
+          const mathOpacity = 0.6 + stroboIntensity * 0.3;
           ctx.font = "11px monospace";
           ctx.textAlign = "left";
           const eqStartX = cx + cr * 0.3;
           const eqStartY = cy - cr * 0.8;
           const lineHeight = 14;
+          const sinValue = (Math.sin(radarTime * 3) * 100).toFixed(1);
+          const tanValue = (Math.tan(radarTime * 0.8) * 10).toFixed(1);
           const equations = [
             `r = ${Math.round(c.r)}px`,
             `θ = ${Math.round(radarAngle * 180 / Math.PI % 360)}°`,
             `ω = ${store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed)}°/s`,
+            `sin(t) = ${sinValue}`,
+            `tan(t) = ${tanValue}`,
             `n = ${store_get($$store_subs ??= {}, "$detectedCount", detectedCount) || 0}`
           ];
-          ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-          ctx.fillRect(eqStartX - 2, eqStartY - 8, 95, equations.length * lineHeight);
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + stroboIntensity * 0.2})`;
+          ctx.fillRect(eqStartX - 2, eqStartY - 8, 110, equations.length * lineHeight);
           equations.forEach((eq, idx) => {
             const yPos = eqStartY + idx * lineHeight;
             const colors = [
@@ -208,47 +246,52 @@ function CanvasPlayer($$renderer, $$props) {
               "rgba(255, 0, 255, ",
               "rgba(255, 255, 0, "
             ];
-            ctx.fillStyle = colors[idx % 3] + mathOpacity + ")";
+            const colorOpacity = mathOpacity + Math.sin(radarTime * 2 + idx) * 0.2;
+            ctx.fillStyle = colors[idx % 3] + colorOpacity + ")";
             ctx.fillText(eq, eqStartX, yPos);
           });
           ctx.font = "bold 10px sans-serif";
           ctx.textAlign = "center";
           const algoY = cy + cr + 25;
-          ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + stroboIntensity * 0.2})`;
           ctx.fillRect(cx - 70, algoY - 8, 140, 16);
-          ctx.fillStyle = "rgba(100, 255, 200, 0.8)";
-          ctx.fillText("CIRCLE DETECTION", cx, algoY);
+          ctx.fillStyle = `rgba(100, 255, 200, ${0.8 + stroboIntensity * 0.2})`;
+          ctx.fillText("STROBOSCOPIC ANALYSIS", cx, algoY);
           for (let i = 0; i < 6; i++) {
             const particleAngle = i / 6 * Math.PI * 2 + radarTime * 0.3;
-            const px = cx + Math.cos(particleAngle) * cr;
-            const py = cy + Math.sin(particleAngle) * cr;
+            const sinWave = Math.sin(radarTime * 4 + i * 1.5) * 0.1;
+            const particleRadius = cr * (1 + sinWave);
+            const px = cx + Math.cos(particleAngle) * particleRadius;
+            const py = cy + Math.sin(particleAngle) * particleRadius;
+            const particleSize = 2 + stroboIntensity * 2;
             ctx.beginPath();
-            ctx.arc(px, py, 2, 0, Math.PI * 2);
-            ctx.fillStyle = i % 2 === 0 ? "rgba(0, 255, 255, 0.8)" : "rgba(255, 0, 255, 0.8)";
+            ctx.arc(px, py, particleSize, 0, Math.PI * 2);
+            ctx.fillStyle = i % 2 === 0 ? `rgba(0, 255, 255, ${stroboIntensity})` : `rgba(255, 0, 255, ${stroboIntensity})`;
             ctx.fill();
           }
           ctx.beginPath();
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
+          ctx.lineWidth = 2 + stroboIntensity;
+          ctx.strokeStyle = `rgba(0, 255, 255, ${0.8 + stroboIntensity * 0.2})`;
           ctx.arc(cx, cy, cr, 0, Math.PI * 2);
           ctx.stroke();
           ctx.lineWidth = 2;
-          const crossSize = Math.max(15, cr * 0.15);
+          const crossSize = Math.max(15, cr * 0.15) * (1 + stroboIntensity * 0.3);
           ctx.beginPath();
-          ctx.strokeStyle = "rgba(0, 255, 255, 0.9)";
+          ctx.strokeStyle = `rgba(0, 255, 255, ${0.9 * stroboIntensity})`;
           ctx.moveTo(cx - crossSize, cy);
           ctx.lineTo(cx + crossSize, cy);
           ctx.moveTo(cx, cy - crossSize);
           ctx.lineTo(cx, cy + crossSize);
           ctx.stroke();
           if (store_get($$store_subs ??= {}, "$detectedPositions", detectedPositions) && store_get($$store_subs ??= {}, "$detectedPositions", detectedPositions).length) {
-            ctx.fillStyle = "rgba(255, 0, 255, 0.9)";
+            ctx.fillStyle = `rgba(255, 0, 255, ${0.9 * stroboIntensity})`;
             for (const p of store_get($$store_subs ??= {}, "$detectedPositions", detectedPositions)) {
               const ang = p.angle;
               const px = cx + Math.cos(ang) * cr;
               const py = cy + Math.sin(ang) * cr;
+              const dotSize = 2.5 + stroboIntensity * 1.5;
               ctx.beginPath();
-              ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+              ctx.arc(px, py, dotSize, 0, Math.PI * 2);
               ctx.fill();
             }
           }
@@ -322,16 +365,29 @@ function CanvasPlayer($$renderer, $$props) {
             ctx.font = "bold 18px sans-serif";
             ctx.textAlign = "center";
             if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
-              ctx.fillText("⚙️ EDIT MODE - ADJUST POSITION & ZOOM", 0, -60);
-              ctx.font = "bold 16px sans-serif";
-              ctx.fillStyle = "rgba(255, 200, 100, 0.95)";
-              ctx.fillText("🎯 Align crosshair with rotation center", 0, -20);
-              ctx.font = "14px sans-serif";
-              ctx.fillStyle = "rgba(200, 255, 200, 0.9)";
-              ctx.fillText("👆 Drag to move  •  🔍 Scroll/Pinch to zoom", 0, 20);
-              ctx.font = "bold 14px sans-serif";
-              ctx.fillStyle = "rgba(100, 255, 100, 0.9)";
-              ctx.fillText('Click "Confirm Detection" when ready', 0, 60);
+              if (store_get($$store_subs ??= {}, "$editModeInteraction", editModeInteraction) === "move-center") {
+                ctx.fillText("⚙️ EDIT MODE - ADJUST POSITION & ZOOM", 0, -60);
+                ctx.font = "bold 16px sans-serif";
+                ctx.fillStyle = "rgba(255, 200, 100, 0.95)";
+                ctx.fillText("🎯 Align crosshair with rotation center", 0, -20);
+                ctx.font = "14px sans-serif";
+                ctx.fillStyle = "rgba(200, 255, 200, 0.9)";
+                ctx.fillText("👆 Drag to move  •  🔍 Scroll/Pinch to zoom", 0, 20);
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillStyle = "rgba(100, 255, 100, 0.9)";
+                ctx.fillText('Click "Confirm Detection" when ready', 0, 60);
+              } else {
+                ctx.fillText("🔄 ROTATE SLICES MODE", 0, -60);
+                ctx.font = "bold 16px sans-serif";
+                ctx.fillStyle = "rgba(255, 200, 100, 0.95)";
+                ctx.fillText("📐 Divide according to the scenes", 0, -20);
+                ctx.font = "14px sans-serif";
+                ctx.fillStyle = "rgba(200, 255, 200, 0.9)";
+                ctx.fillText("👆 Drag to rotate divisions", 0, 20);
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillStyle = "rgba(100, 255, 100, 0.9)";
+                ctx.fillText("Double-tap to switch back to move mode", 0, 60);
+              }
             } else {
               ctx.fillText("ANALYZING IMAGE...", 0, -20);
               ctx.font = "12px sans-serif";
@@ -500,6 +556,7 @@ function CanvasPlayer($$renderer, $$props) {
     $$renderer2.push(`<div${attr_class(
       `canvas-wrapper ${stringify(
         // use CSS pixel sizes for layout calculations; ctx is scaled to DPR
+        // Fill outer circle with selected color if enabled
         // Calculate "contain" sizing
         // Translate to center plus pan offset, apply zoom by drawing at scaled size,
         // then rotate and draw centered
@@ -513,17 +570,20 @@ function CanvasPlayer($$renderer, $$props) {
         // uniform scale (css pixels)
         // relative to center (css px)
         // Retro-futuristic radar animation (optimisé)
-        // Un seul anneau pulsant (optimisé)
-        // Balayage radar simplifié (sans gradient coûteux)
-        // Grille simplifiée (8 lignes au lieu de 12)
-        // Angles tous les 90°
-        // Calculs mathématiques simplifiés (sans animation lourde)
-        // Fond unique pour toutes les équations
-        // Badge simplifié
-        // 6 particules au lieu de 16
-        // Main circle simplifié (sans gradient coûteux)
-        // Crosshair simplifié
-        // Positions détectées simplifiées
+        // Stroboscopic effects using mathematical expressions
+        // Hz
+        // Pulsating ring with sin/tan modulation
+        // Stroboscopic radial lines with sin wave modulation
+        // Balayage radar avec effet stroboscopique
+        // Grille avec modulation tan
+        // Angles avec stroboscope
+        // Calculs mathématiques avec expressions stroboscopiques
+        // Fond avec pulsation
+        // Badge avec stroboscope
+        // Particules avec mouvement basé sur sin/tan
+        // Cercle principal avec pulsation
+        // Crosshair avec effet stroboscopique
+        // Positions détectées avec stroboscope
         // Draw detection radar animation only in edit mode (not after confirmation)
         // In edit mode, loop the animation continuously
         // Continuous loop animation - use a fallback startTime if not set
@@ -540,7 +600,10 @@ function CanvasPlayer($$renderer, $$props) {
         // Expanding rings from center
         // Rotating scan line
         // Center text
-        // Main title
+        // Main title - changes based on interaction mode
+        // Instructions
+        // Hint at bottom
+        // Rotate slices mode
         // Instructions
         // Hint at bottom
         // Progress indicator
@@ -591,7 +654,7 @@ function CanvasPlayer($$renderer, $$props) {
     )}><canvas class="svelte-byh4af"></canvas> `);
     if (store_get($$store_subs ??= {}, "$isMobile", isMobile)) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="speed-hud svelte-byh4af">Speed: ${escape_html(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed).toFixed(0))}°/s</div>`);
+      $$renderer2.push(`<div class="speed-hud svelte-byh4af"${attr_style(store_get($$store_subs ??= {}, "$isMobile", isMobile) && speedHudX !== null ? `right: auto; top: auto; left: ${speedHudX}px; top: ${speedHudY}px;` : "")}>Speed: ${escape_html(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed).toFixed(0))}°/s</div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -606,7 +669,14 @@ function CanvasPlayer($$renderer, $$props) {
         $$renderer2.push("<!--[!-->");
         $$renderer2.push(`🔄 ROTATE SLICES - Drag to rotate • Double-tap to move center`);
       }
-      $$renderer2.push(`<!--]--></div> <div class="frame-counter svelte-byh4af"><div class="frame-info svelte-byh4af"><div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;" class="svelte-byh4af">How many scenes on the disc?</div> <div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;" class="svelte-byh4af">Set frame count = number of animation scenes</div></div> <div style="display: flex; align-items: center; gap: 8px;" class="svelte-byh4af"><button class="frame-btn svelte-byh4af" title="Decrease frame count">−</button> <div class="frame-display svelte-byh4af"><div class="frame-number svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || 12)}</div> <div class="frame-label svelte-byh4af">frames</div></div> <button class="frame-btn svelte-byh4af" title="Increase frame count">+</button></div></div>`);
+      $$renderer2.push(`<!--]--></div> `);
+      if (store_get($$store_subs ??= {}, "$editModeInteraction", editModeInteraction) === "move-center") {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="crosshair-overlay svelte-byh4af"><div class="crosshair-vertical svelte-byh4af"></div> <div class="crosshair-horizontal svelte-byh4af"></div> <div class="crosshair-center-dot svelte-byh4af"></div> <div class="crosshair-circle svelte-byh4af"></div></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> <div class="frame-counter svelte-byh4af"><div class="frame-info svelte-byh4af"><div style="font-size: 0.7em; color: #aaa; margin-bottom: 4px; text-align: center;" class="svelte-byh4af">How many scenes on the disc?</div> <div style="font-size: 0.65em; color: #888; text-align: center; margin-bottom: 8px;" class="svelte-byh4af">Set frame count = number of animation scenes</div></div> <div style="display: flex; align-items: center; gap: 8px;" class="svelte-byh4af"><button class="frame-btn svelte-byh4af" title="Decrease frame count">−</button> <div class="frame-display svelte-byh4af"><div class="frame-number svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) || 12)}</div> <div class="frame-label svelte-byh4af">frames</div></div> <button class="frame-btn svelte-byh4af" title="Increase frame count">+</button></div></div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -642,7 +712,7 @@ function AnalyzerPanel($$renderer, $$props) {
       $$renderer2.push(`<button class="confirm-btn svelte-14nyow8"${attr("disabled", busy, true)}>Confirm Detection</button> <button class="svelte-14nyow8">Cancel</button>`);
     } else {
       $$renderer2.push("<!--[!-->");
-      $$renderer2.push(`<button${attr_class(clsx(!_detectedCircle ? "detect-btn-required" : ""), "svelte-14nyow8")}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl), true)}>Detect Circle &amp; Count</button>`);
+      $$renderer2.push(`<button${attr_class(clsx(!_detectedCircle ? "detect-btn-required" : ""), "svelte-14nyow8")}${attr("disabled", !store_get($$store_subs ??= {}, "$imageUrl", imageUrl) || store_get($$store_subs ??= {}, "$isPlaying", isPlaying), true)}>Detect Circle &amp; Count</button>`);
     }
     $$renderer2.push(`<!--]--> <button${attr("disabled", !_suggested, true)} class="svelte-14nyow8">Apply Suggested Speed</button> <div class="gif-export-group svelte-14nyow8"><button class="save-gif-btn svelte-14nyow8"${attr("disabled", !canSaveGif || exporting, true)}>${escape_html("💾 Save GIF")}</button> <label style="display:flex;align-items:center;gap:6px;" class="svelte-14nyow8"><span style="font-size:12px;opacity:0.8;" class="svelte-14nyow8">Frames:</span> <input type="number" min="6" step="1"${attr("placeholder", _detectedCount ? `Auto (${_detectedCount * 2})` : "Auto (24)")}${attr("value", store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount))} style="width:80px;padding:4px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <span style="font-size:11px;opacity:0.6;" title="Leave empty for auto-detection" class="svelte-14nyow8">`);
     if (optsGifCount) {
@@ -730,6 +800,13 @@ function AnalyzerPanel($$renderer, $$props) {
     if (store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled)) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`<span style="background: #4a9eff; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; margin-left: 4px;" class="svelte-14nyow8">${escape_html(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} Hz</span>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></label> <label style="display:flex;align-items:center;gap:6px;margin-left:6px;" class="svelte-14nyow8"><input type="checkbox"${attr("checked", store_get($$store_subs ??= {}, "$fillOuterCircle", fillOuterCircle), true)} class="svelte-14nyow8"/> <span class="svelte-14nyow8">Fill Outer Circle</span> `);
+    if (store_get($$store_subs ??= {}, "$fillOuterCircle", fillOuterCircle)) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<input type="color"${attr("value", store_get($$store_subs ??= {}, "$outerCircleFillColor", outerCircleFillColor))} style="width:40px;height:28px;border:1px solid #555;border-radius:4px;cursor:pointer;margin-left:4px;" title="Choose fill color" class="svelte-14nyow8"/>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -1249,6 +1326,11 @@ function SampleImageSelector($$renderer, $$props) {
       {
         name: "Cinémathèque 25",
         file: "cinemateque_francaise_25.png",
+        repo: "new"
+      },
+      {
+        name: "Phenakistoscope 3g07692a",
+        file: "Phenakistoscope_3g07692a.jpg",
         repo: "new"
       }
     ];

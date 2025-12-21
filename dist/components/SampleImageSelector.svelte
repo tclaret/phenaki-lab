@@ -1,6 +1,24 @@
 <script>
 	import { onMount } from 'svelte';
-	import { imageUrl, previewUrl, isPlaying, selectedImageName } from '../store';
+	import { 
+		imageUrl, 
+		previewUrl, 
+		isPlaying, 
+		selectedImageName,
+		detectedCircle,
+		detectedCount,
+		detectedPositions,
+		confirmedDetection,
+		editMode,
+		sliceRotationAngle,
+		editModeInteraction,
+		rotationSpeed,
+		suggestedRotationSpeed,
+		gifFrameCount,
+		userAdjustedSpeed,
+		fillOuterCircle,
+		outerCircleFillColor
+	} from '../store';
 
 	const GITHUB_RAW_URL_OLD =
 		'https://raw.githubusercontent.com/tclaret/phenakistoscope-simulator/main/images';
@@ -107,7 +125,8 @@
 		{ name: 'Cinémathèque 22', file: 'cinemateque_francaise_22.png', repo: 'new' },
 		{ name: 'Cinémathèque 23', file: 'cinemateque_francaise_23.png', repo: 'new' },
 		{ name: 'Cinémathèque 24', file: 'cinemateque_francaise_24.png', repo: 'new' },
-		{ name: 'Cinémathèque 25', file: 'cinemateque_francaise_25.png', repo: 'new' }
+		{ name: 'Cinémathèque 25', file: 'cinemateque_francaise_25.png', repo: 'new' },
+		{ name: 'Phenakistoscope 3g07692a', file: 'Phenakistoscope_3g07692a.jpg', repo: 'new' }
 	];
 
 	let selectedSampleFile = '';
@@ -115,9 +134,25 @@
 	function selectSample(sample) {
 		const baseUrl = sample.repo === 'new' ? GITHUB_RAW_URL_NEW : GITHUB_RAW_URL_OLD;
 		const url = `${baseUrl}/${sample.file}`;
+		
+		// Reset all contexts when loading a new image
+		detectedCircle.set(null);
+		detectedCount.set(0);
+		detectedPositions.set([]);
+		confirmedDetection.set(false);
+		editMode.set(false);
+		sliceRotationAngle.set(0);
+		editModeInteraction.set('move-center');
+		rotationSpeed.set(0);
+		suggestedRotationSpeed.set(1);
+		gifFrameCount.set(null);
+		userAdjustedSpeed.set(false);
+		fillOuterCircle.set(false);
+		outerCircleFillColor.set('#000000');
+		
 		imageUrl.set(url);
 		previewUrl.set(url);
-		isPlaying.set(true);
+		isPlaying.set(false);
 		selectedImageName.set(sample.name);
 		selectedSampleFile = sample.file;
 	}

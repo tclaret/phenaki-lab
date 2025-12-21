@@ -74,3 +74,7 @@ export const sliceRotationAngle = writable(0);
 
 // Edit mode interaction state: 'move-center' (default) or 'rotate-slices'
 export const editModeInteraction = writable('move-center');
+
+// Fill outer circle option
+export const fillOuterCircle = writable(false);
+export const outerCircleFillColor = writable('#000000');

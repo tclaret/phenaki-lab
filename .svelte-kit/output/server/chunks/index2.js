@@ -2620,7 +2620,7 @@ function ensure_array_like(array_like_or_iterator) {
   return [];
 }
 export {
-  attr_style as $,
+  clsx as $,
   svelte_boundary_reset_onerror as A,
   Batch as B,
   COMMENT_NODE as C,
@@ -2647,7 +2647,7 @@ export {
   unsubscribe_stores as X,
   attr_class as Y,
   stringify as Z,
-  clsx as _,
+  attr_style as _,
   HYDRATION_END as a,
   ensure_array_like as a0,
   HYDRATION_START as b,

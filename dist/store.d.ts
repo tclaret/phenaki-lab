@@ -35,3 +35,5 @@ export const isMobile: import("svelte/store").Writable<boolean>;
 export const gifFrameCount: import("svelte/store").Writable<null>;
 export const sliceRotationAngle: import("svelte/store").Writable<number>;
 export const editModeInteraction: import("svelte/store").Writable<string>;
+export const fillOuterCircle: import("svelte/store").Writable<boolean>;
+export const outerCircleFillColor: import("svelte/store").Writable<string>;
