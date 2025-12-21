@@ -81,6 +81,12 @@
 	// For slice rotation in edit mode
 	let sliceRotationStartAngle = 0;
 	let pointerStartAngle = 0;
+	// Speed HUD positioning (draggable on mobile)
+	let speedHudX = null;
+	let speedHudY = null;
+	let speedHudDragging = false;
+	let speedHudStartX = 0;
+	let speedHudStartY = 0;
 
 	let htmlImg = null;
 	let imageReady = false;
@@ -211,6 +217,9 @@
 		return () => {
 			if (ro) ro.disconnect();
 			window.removeEventListener('resize', checkMobile);
+			// Clean up speed HUD drag listeners
+			document.removeEventListener('pointermove', onSpeedHudPointerMove);
+			document.removeEventListener('pointerup', onSpeedHudPointerUp);
 		};
 	});
 
@@ -440,6 +449,38 @@
 		drawFrame();
 	}
 
+	// Speed HUD drag handlers (for mobile repositioning)
+	function onSpeedHudPointerDown(e) {
+		if (!$isMobile) return;
+		e.stopPropagation();
+		e.preventDefault();
+		speedHudDragging = true;
+		speedHudStartX = e.clientX - (speedHudX || 0);
+		speedHudStartY = e.clientY - (speedHudY || 0);
+		// Add global listeners for drag
+		document.addEventListener('pointermove', onSpeedHudPointerMove);
+		document.addEventListener('pointerup', onSpeedHudPointerUp);
+	}
+
+	function onSpeedHudPointerMove(e) {
+		if (!speedHudDragging) return;
+		e.stopPropagation();
+		e.preventDefault();
+		speedHudX = e.clientX - speedHudStartX;
+		speedHudY = e.clientY - speedHudStartY;
+	}
+
+	function onSpeedHudPointerUp(e) {
+		if (speedHudDragging) {
+			e.stopPropagation();
+			e.preventDefault();
+		}
+		speedHudDragging = false;
+		// Remove global listeners
+		document.removeEventListener('pointermove', onSpeedHudPointerMove);
+		document.removeEventListener('pointerup', onSpeedHudPointerUp);
+	}
+
 	// (listeners are added/removed in lifecycle hooks)
 
 	onDestroy(() => {
@@ -570,10 +611,17 @@
 				const radarTime = Date.now() / 1000;
 				const radarAngle = (radarTime * Math.PI * 0.5) % (Math.PI * 2);
 				
-				// Un seul anneau pulsant (optimisé)
+				// Stroboscopic effects using mathematical expressions
+				const stroboFreq = 2.5; // Hz
+				const stroboPhase = radarTime * stroboFreq * Math.PI * 2;
+				const stroboIntensity = Math.abs(Math.sin(stroboPhase));
+				
+				// Pulsating ring with sin/tan modulation
 				const pulsePhase = (radarTime * 0.8) % 2;
-				const pulseRadius = cr * (0.8 + pulsePhase * 0.4);
-				const pulseOpacity = Math.max(0, 0.3 * (1 - pulsePhase / 2));
+				const sinModulation = Math.sin(radarTime * 3) * 0.1;
+				const tanModulation = Math.tan(radarTime * 0.5) * 0.05;
+				const pulseRadius = cr * (0.8 + pulsePhase * 0.4 + sinModulation + Math.min(Math.max(tanModulation, -0.1), 0.1));
+				const pulseOpacity = Math.max(0, 0.3 * (1 - pulsePhase / 2) * stroboIntensity);
 				
 				ctx.beginPath();
 				ctx.strokeStyle = `rgba(0, 255, 255, ${pulseOpacity})`;
@@ -581,29 +629,52 @@
 				ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
 				ctx.stroke();
 				
-				// Balayage radar simplifié (sans gradient coûteux)
+				// Stroboscopic radial lines with sin wave modulation
+				const numStroboLines = 16;
+				for (let i = 0; i < numStroboLines; i++) {
+					const baseAngle = (i / numStroboLines) * Math.PI * 2;
+					const sinOffset = Math.sin(radarTime * 2 + i * 0.5) * 0.2;
+					const lineAngle = baseAngle + sinOffset;
+					const lineLength = cr * (0.7 + Math.sin(radarTime * 3 + i) * 0.2) * stroboIntensity;
+					
+					ctx.save();
+					ctx.translate(cx, cy);
+					ctx.strokeStyle = `rgba(0, 255, 255, ${stroboIntensity * 0.3})`;
+					ctx.lineWidth = 1;
+					ctx.beginPath();
+					ctx.moveTo(0, 0);
+					ctx.lineTo(Math.cos(lineAngle) * lineLength, Math.sin(lineAngle) * lineLength);
+					ctx.stroke();
+					ctx.restore();
+				}
+				
+				// Balayage radar avec effet stroboscopique
 				ctx.save();
 				ctx.translate(cx, cy);
 				ctx.rotate(radarAngle);
-				ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
-				ctx.lineWidth = 2;
+				const radarOpacity = 0.4 + stroboIntensity * 0.3;
+				ctx.strokeStyle = `rgba(0, 255, 255, ${radarOpacity})`;
+				ctx.lineWidth = 2 + stroboIntensity * 2;
 				ctx.beginPath();
 				ctx.moveTo(0, 0);
 				ctx.lineTo(cr * 1.1, 0);
 				ctx.stroke();
 				ctx.restore();
 				
-				// Grille simplifiée (8 lignes au lieu de 12)
-				ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+				// Grille avec modulation tan
+				ctx.strokeStyle = `rgba(0, 255, 255, ${0.1 + stroboIntensity * 0.15})`;
 				ctx.lineWidth = 1;
 				for (let i = 0; i < 8; i++) {
 					const gridAngle = (i / 8) * Math.PI * 2;
+					const tanWave = Math.tan(radarTime + i * 0.3) * 0.1;
+					const gridLength = cr * (1 + Math.min(Math.max(tanWave, -0.15), 0.15));
+					
 					ctx.beginPath();
 					ctx.moveTo(cx, cy);
-					ctx.lineTo(cx + Math.cos(gridAngle) * cr, cy + Math.sin(gridAngle) * cr);
+					ctx.lineTo(cx + Math.cos(gridAngle) * gridLength, cy + Math.sin(gridAngle) * gridLength);
 					ctx.stroke();
 					
-					// Angles tous les 90°
+					// Angles avec stroboscope
 					if (i % 2 === 0) {
 						const angleDeg = Math.round((gridAngle * 180 / Math.PI) % 360);
 						const labelDist = cr * 1.12;
@@ -611,15 +682,15 @@
 						const ly = cy + Math.sin(gridAngle) * labelDist;
 						
 						ctx.font = 'bold 10px monospace';
-						ctx.fillStyle = 'rgba(0, 255, 255, 0.7)';
+						ctx.fillStyle = `rgba(0, 255, 255, ${0.7 * stroboIntensity})`;
 						ctx.textAlign = 'center';
 						ctx.textBaseline = 'middle';
 						ctx.fillText(`${angleDeg}°`, lx, ly);
 					}
 				}
 				
-				// Calculs mathématiques simplifiés (sans animation lourde)
-				const mathOpacity = 0.6;
+				// Calculs mathématiques avec expressions stroboscopiques
+				const mathOpacity = 0.6 + stroboIntensity * 0.3;
 				ctx.font = '11px monospace';
 				ctx.textAlign = 'left';
 				
@@ -627,74 +698,84 @@
 				const eqStartY = cy - cr * 0.8;
 				const lineHeight = 14;
 				
+				const sinValue = (Math.sin(radarTime * 3) * 100).toFixed(1);
+				const tanValue = (Math.tan(radarTime * 0.8) * 10).toFixed(1);
+				
 				const equations = [
 					`r = ${Math.round(c.r)}px`,
 					`θ = ${Math.round((radarAngle * 180 / Math.PI) % 360)}°`,
 					`ω = ${$rotationSpeed}°/s`,
+					`sin(t) = ${sinValue}`,
+					`tan(t) = ${tanValue}`,
 					`n = ${$detectedCount || 0}`
 				];
 				
-				// Fond unique pour toutes les équations
-				ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-				ctx.fillRect(eqStartX - 2, eqStartY - 8, 95, equations.length * lineHeight);
+				// Fond avec pulsation
+				ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + stroboIntensity * 0.2})`;
+				ctx.fillRect(eqStartX - 2, eqStartY - 8, 110, equations.length * lineHeight);
 				
 				equations.forEach((eq, idx) => {
 					const yPos = eqStartY + idx * lineHeight;
 					const colors = ['rgba(0, 255, 255, ', 'rgba(255, 0, 255, ', 'rgba(255, 255, 0, '];
-					ctx.fillStyle = colors[idx % 3] + mathOpacity + ')';
+					const colorOpacity = mathOpacity + Math.sin(radarTime * 2 + idx) * 0.2;
+					ctx.fillStyle = colors[idx % 3] + colorOpacity + ')';
 					ctx.fillText(eq, eqStartX, yPos);
 				});
 				
-				// Badge simplifié
+				// Badge avec stroboscope
 				ctx.font = 'bold 10px sans-serif';
 				ctx.textAlign = 'center';
 				const algoY = cy + cr + 25;
 				
-				ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+				ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + stroboIntensity * 0.2})`;
 				ctx.fillRect(cx - 70, algoY - 8, 140, 16);
-				ctx.fillStyle = 'rgba(100, 255, 200, 0.8)';
-				ctx.fillText('CIRCLE DETECTION', cx, algoY);
+				ctx.fillStyle = `rgba(100, 255, 200, ${0.8 + stroboIntensity * 0.2})`;
+				ctx.fillText('STROBOSCOPIC ANALYSIS', cx, algoY);
 				
-				// 6 particules au lieu de 16
+				// Particules avec mouvement basé sur sin/tan
 				for (let i = 0; i < 6; i++) {
 					const particleAngle = (i / 6) * Math.PI * 2 + radarTime * 0.3;
-					const px = cx + Math.cos(particleAngle) * cr;
-					const py = cy + Math.sin(particleAngle) * cr;
+					const sinWave = Math.sin(radarTime * 4 + i * 1.5) * 0.1;
+					const particleRadius = cr * (1 + sinWave);
+					const px = cx + Math.cos(particleAngle) * particleRadius;
+					const py = cy + Math.sin(particleAngle) * particleRadius;
 					
+					const particleSize = 2 + stroboIntensity * 2;
 					ctx.beginPath();
-					ctx.arc(px, py, 2, 0, Math.PI * 2);
-					ctx.fillStyle = i % 2 === 0 ? 'rgba(0, 255, 255, 0.8)' : 'rgba(255, 0, 255, 0.8)';
+					ctx.arc(px, py, particleSize, 0, Math.PI * 2);
+					ctx.fillStyle = i % 2 === 0 ? `rgba(0, 255, 255, ${stroboIntensity})` : `rgba(255, 0, 255, ${stroboIntensity})`;
 					ctx.fill();
 				}
 
-				// Main circle simplifié (sans gradient coûteux)
+				// Cercle principal avec pulsation
 				ctx.beginPath();
-				ctx.lineWidth = 2;
-				ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
+				ctx.lineWidth = 2 + stroboIntensity;
+				ctx.strokeStyle = `rgba(0, 255, 255, ${0.8 + stroboIntensity * 0.2})`;
 				ctx.arc(cx, cy, cr, 0, Math.PI * 2);
 				ctx.stroke();
 
-				// Crosshair simplifié
+				// Crosshair avec effet stroboscopique
 				ctx.lineWidth = 2;
-				const crossSize = Math.max(15, cr * 0.15);
+				const crossSize = Math.max(15, cr * 0.15) * (1 + stroboIntensity * 0.3);
 				
 				ctx.beginPath();
-				ctx.strokeStyle = 'rgba(0, 255, 255, 0.9)';
+				ctx.strokeStyle = `rgba(0, 255, 255, ${0.9 * stroboIntensity})`;
 				ctx.moveTo(cx - crossSize, cy);
 				ctx.lineTo(cx + crossSize, cy);
 				ctx.moveTo(cx, cy - crossSize);
 				ctx.lineTo(cx, cy + crossSize);
 				ctx.stroke();
 
-				// Positions détectées simplifiées
+				// Positions détectées avec stroboscope
 				if ($detectedPositions && $detectedPositions.length) {
-					ctx.fillStyle = 'rgba(255, 0, 255, 0.9)';
+					ctx.fillStyle = `rgba(255, 0, 255, ${0.9 * stroboIntensity})`;
 					for (const p of $detectedPositions) {
 						const ang = p.angle;
 						const px = cx + Math.cos(ang) * cr;
 						const py = cy + Math.sin(ang) * cr;
+						const dotSize = 2.5 + stroboIntensity * 1.5;
 						ctx.beginPath();
-						ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+						ctx.arc(px, py, dotSize, 0, Math.PI * 2);
 						ctx.fill();
 					}
 				}
@@ -793,22 +874,41 @@
 					ctx.textAlign = 'center';
 
 					if ($editMode) {
-						// Main title
-						ctx.fillText('⚙️ EDIT MODE - ADJUST POSITION & ZOOM', 0, -60);
+						// Main title - changes based on interaction mode
+						if ($editModeInteraction === 'move-center') {
+							ctx.fillText('⚙️ EDIT MODE - ADJUST POSITION & ZOOM', 0, -60);
 
-						ctx.font = 'bold 16px sans-serif';
-						ctx.fillStyle = 'rgba(255, 200, 100, 0.95)';
-						ctx.fillText('🎯 Align crosshair with rotation center', 0, -20);
+							ctx.font = 'bold 16px sans-serif';
+							ctx.fillStyle = 'rgba(255, 200, 100, 0.95)';
+							ctx.fillText('🎯 Align crosshair with rotation center', 0, -20);
 
-						// Instructions
-						ctx.font = '14px sans-serif';
-						ctx.fillStyle = 'rgba(200, 255, 200, 0.9)';
-						ctx.fillText('👆 Drag to move  •  🔍 Scroll/Pinch to zoom', 0, 20);
+							// Instructions
+							ctx.font = '14px sans-serif';
+							ctx.fillStyle = 'rgba(200, 255, 200, 0.9)';
+							ctx.fillText('👆 Drag to move  •  🔍 Scroll/Pinch to zoom', 0, 20);
 
-						// Hint at bottom
-						ctx.font = 'bold 14px sans-serif';
-						ctx.fillStyle = 'rgba(100, 255, 100, 0.9)';
-						ctx.fillText('Click "Confirm Detection" when ready', 0, 60);
+							// Hint at bottom
+							ctx.font = 'bold 14px sans-serif';
+							ctx.fillStyle = 'rgba(100, 255, 100, 0.9)';
+							ctx.fillText('Click "Confirm Detection" when ready', 0, 60);
+						} else {
+							// Rotate slices mode
+							ctx.fillText('🔄 ROTATE SLICES MODE', 0, -60);
+
+							ctx.font = 'bold 16px sans-serif';
+							ctx.fillStyle = 'rgba(255, 200, 100, 0.95)';
+							ctx.fillText('📐 Divide according to the scenes', 0, -20);
+
+							// Instructions
+							ctx.font = '14px sans-serif';
+							ctx.fillStyle = 'rgba(200, 255, 200, 0.9)';
+							ctx.fillText('👆 Drag to rotate divisions', 0, 20);
+
+							// Hint at bottom
+							ctx.font = 'bold 14px sans-serif';
+							ctx.fillStyle = 'rgba(100, 255, 100, 0.9)';
+							ctx.fillText('Double-tap to switch back to move mode', 0, 60);
+						}
 					} else {
 						ctx.fillText('ANALYZING IMAGE...', 0, -20);
 						// Progress indicator
@@ -1009,7 +1109,13 @@
 <div class="canvas-wrapper {$editMode ? 'edit-mode' : ''}" bind:this={wrapper}>
 	<canvas bind:this={canvas}></canvas>
 	{#if showSpeedHUD || $isMobile}
-		<div class="speed-hud">Speed: {$rotationSpeed.toFixed(0)}°/s</div>
+		<div 
+			class="speed-hud"
+			style={$isMobile && speedHudX !== null ? `right: auto; top: auto; left: ${speedHudX}px; top: ${speedHudY}px;` : ''}
+			on:pointerdown={onSpeedHudPointerDown}
+		>
+			Speed: {$rotationSpeed.toFixed(0)}°/s
+		</div>
 	{/if}
 	{#if $editMode}
 		<div class="edit-mode-indicator">
@@ -1114,13 +1220,16 @@
 		border-radius: 6px;
 		font-size: 18px;
 		font-weight: 600;
-		pointer-events: none;
+		pointer-events: auto;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 		max-width: calc(100% - 16px);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		z-index: 5;
+		cursor: move;
+		touch-action: none;
+		user-select: none;
 	}
 	
 	/* Mobile responsive adjustments */
@@ -1131,6 +1240,7 @@
 			right: 4px;
 			top: 4px;
 			max-width: 120px;
+			opacity: 0.8;
 		}
 	}
 	
@@ -1231,22 +1341,39 @@
 	/* Mobile optimizations for better touch interaction */
 	@media (max-width: 768px) {
 		.frame-counter {
-			padding: 16px 20px;
-			gap: 16px;
+			padding: 8px 12px;
+			gap: 10px;
+			bottom: 8px;
+			background: rgba(20, 20, 20, 0.85);
+			border: 1px solid rgba(100, 200, 255, 0.4);
+		}
+		
+		.frame-info {
+			display: none; /* Hide explanatory text on mobile to save space */
 		}
 		
 		.frame-btn {
-			width: 52px;
-			height: 52px;
-			font-size: 32px;
+			width: 40px;
+			height: 40px;
+			font-size: 24px;
 		}
 		
 		.frame-display {
-			min-width: 80px;
+			min-width: 50px;
 		}
 		
 		.frame-number {
-			font-size: 36px;
+			font-size: 24px;
+		}
+		
+		.frame-label {
+			font-size: 9px;
+		}
+		
+		.edit-mode-indicator {
+			font-size: 11px;
+			padding: 6px 12px;
+			top: 6px;
 		}
 	}
 	
