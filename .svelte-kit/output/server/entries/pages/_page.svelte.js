@@ -1329,8 +1329,93 @@ function SampleImageSelector($$renderer, $$props) {
         repo: "new"
       },
       {
+        name: "Cinémathèque 26",
+        file: "cinemateque_francaise_26.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 27",
+        file: "cinemateque_francaise_27.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 28",
+        file: "cinemateque_francaise_28.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 29",
+        file: "cinemateque_francaise_29.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 30",
+        file: "cinemateque_francaise_30.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 31",
+        file: "cinemateque_francaise_31.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 32",
+        file: "cinemateque_francaise_32.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 33",
+        file: "cinemateque_francaise_33.png",
+        repo: "new"
+      },
+      {
+        name: "Cinémathèque 34",
+        file: "cinemateque_francaise_34.png",
+        repo: "new"
+      },
+      {
         name: "Phenakistoscope 3g07692a",
         file: "Phenakistoscope_3g07692a.jpg",
+        repo: "new"
+      },
+      {
+        name: "Phenakistoscope 3g07692u",
+        file: "Phenakistoscope_3g07692u.jpg",
+        repo: "new"
+      },
+      { name: "Lebensrad 01", file: "Lebensrad01.jpg", repo: "new" },
+      { name: "Dance Dance", file: "Dance_dance.png", repo: "new" },
+      { name: "Download", file: "download.png", repo: "new" },
+      { name: "Serpent", file: "serpent.png", repo: "new" },
+      {
+        name: "Zoopraxiscope 0",
+        file: "zoopraxiscope-0.png",
+        repo: "new"
+      },
+      { name: "S-L1600 PNG", file: "s-l1600.png", repo: "new" },
+      {
+        name: "1200px Cats and Donkey",
+        file: "1200px-Optical_Toy,_Phenakistiscope_Disc_with_Cats_and_Donkey,_ca._1830_(CH_18607981).jpg",
+        repo: "new"
+      },
+      {
+        name: "Photographic Pastimes",
+        file: "Photographic_pastimes_-_a_series_of_interesting_experiments_for_amateurs_for_obtaining_novel_and_curious_effects_with_the_aid_of_the_camera_(1891)_(14766082535).jpg",
+        repo: "new"
+      },
+      {
+        name: "IL 1588 2019925483",
+        file: "il_1588xN.2019925483_gcfc.jpg",
+        repo: "new"
+      },
+      {
+        name: "IL 1588 7127245108",
+        file: "il_1588xN.7127245108_4tnw.png",
+        repo: "new"
+      },
+      {
+        name: "IL 1588 7287092618",
+        file: "il_1588xN.7287092618_bs1i.png",
         repo: "new"
       }
     ];
@@ -1366,7 +1451,7 @@ function SampleImageSelector($$renderer, $$props) {
   });
 }
 function _page($$renderer) {
-  $$renderer.push(`<div class="container svelte-1uha8ag"><h1 class="svelte-1uha8ag">Phenakistoscope Lab</h1> <p class="sub svelte-1uha8ag">Convert old phenakistoscope discs into animated GIFs</p> <div class="intro svelte-1uha8ag"><p class="svelte-1uha8ag">To create an animated GIF from a phenakistoscope image, select the correct number of frames according to the image, adjust the rotation speed, and then save it as a fast, slow, or normal animated GIF depending on your settings.</p></div> `);
+  $$renderer.push(`<div class="container svelte-1uha8ag"><h1 class="svelte-1uha8ag">Phenakistoscope Lab</h1> <p class="sub svelte-1uha8ag">Convert old phenakistoscope discs into animated GIFs</p> <div class="wiki-link svelte-1uha8ag"><a href="https://en.wikipedia.org/wiki/Phenakistiscope" target="_blank" rel="noopener noreferrer" class="svelte-1uha8ag">ℹ️ Learn about Phenakistoscopes</a></div> <div class="intro svelte-1uha8ag"><p class="svelte-1uha8ag">To create an animated GIF from a phenakistoscope image, select the correct number of frames according to the image, adjust the rotation speed, and then save it as a fast, slow, or normal animated GIF depending on your settings.</p></div> `);
   FileUploader($$renderer);
   $$renderer.push(`<!----> `);
   SampleImageSelector($$renderer);

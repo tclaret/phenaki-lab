@@ -735,10 +735,12 @@
 			<div style="display:flex;gap:12px;align-items:center;">
 				<button 
 					class="speed-btn" 
-					on:pointerdown|stopPropagation={() => startSpeedChange('decrease')}
-					on:pointerup|stopPropagation={stopSpeedChange}
+					on:pointerdown|preventDefault|stopPropagation={() => startSpeedChange('decrease')}
+					on:pointerup|preventDefault|stopPropagation={stopSpeedChange}
 					on:pointerleave|stopPropagation={stopSpeedChange}
 					on:pointercancel|stopPropagation={stopSpeedChange}
+					on:touchstart|preventDefault|stopPropagation
+					on:touchend|preventDefault|stopPropagation
 				>−</button>
 				<div style="text-align:center;min-width:120px;">
 					<div class="speed-display">{$rotationSpeed.toFixed(0)}°/s</div>
@@ -746,10 +748,12 @@
 				</div>
 				<button 
 					class="speed-btn" 
-					on:pointerdown|stopPropagation={() => startSpeedChange('increase')}
-					on:pointerup|stopPropagation={stopSpeedChange}
+					on:pointerdown|preventDefault|stopPropagation={() => startSpeedChange('increase')}
+					on:pointerup|preventDefault|stopPropagation={stopSpeedChange}
 					on:pointerleave|stopPropagation={stopSpeedChange}
 					on:pointercancel|stopPropagation={stopSpeedChange}
+					on:touchstart|preventDefault|stopPropagation
+					on:touchend|preventDefault|stopPropagation
 				>+</button>
 			</div>
 		</div>
