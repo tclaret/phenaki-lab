@@ -61,28 +61,33 @@
       <div style="font-size: 0.9em; color: #aaa; margin-bottom: 6px;">Quick Presets:</div>
       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(42)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           42 Hz - Strong Flicker
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(50)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           50 Hz - Threshold
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(55)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           55 Hz - Subtle
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(60)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           60 Hz - Cinema
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(70)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           70 Hz - Smooth
         </button>
       </div>
@@ -149,3 +154,18 @@
   {/if}
 </div>
 
+<style>
+  .flicker-preset-btn {
+    padding: 6px 12px;
+    font-size: 0.85em;
+  }
+  
+  /* Mobile optimizations for better touch interaction */
+  @media (max-width: 768px) {
+    .flicker-preset-btn {
+      min-height: 48px;
+      padding: 12px 18px;
+      font-size: 1em;
+    }
+  }
+</style>

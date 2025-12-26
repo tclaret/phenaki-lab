@@ -61,28 +61,33 @@
       <div style="font-size: 0.9em; color: #aaa; margin-bottom: 6px;">Quick Presets:</div>
       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(42)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           42 Hz - Strong Flicker
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(50)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           50 Hz - Threshold
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(55)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           55 Hz - Subtle
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(60)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           60 Hz - Cinema
         </button>
         <button 
+          class="flicker-preset-btn"
           on:click={() => flickerFrequency.set(70)}
-          style="padding: 6px 12px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85em; transition: all 0.2s;">
+          style="border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
           70 Hz - Smooth
         </button>
       </div>
@@ -146,6 +151,46 @@
         {/if}
       </div>
     </div>
+
+    <!-- Pro Tips Section -->
+    <details style="margin-top: 15px; padding: 10px; background: rgba(255, 200, 100, 0.05); border-left: 3px solid #ffb84d; border-radius: 4px;">
+      <summary style="cursor: pointer; font-weight: 600; color: #ffb84d; font-size: 0.9em; user-select: none;">
+        💡 Pro Tips for Best Results
+      </summary>
+      <div style="margin-top: 10px; font-size: 0.85em; color: #ccc; line-height: 1.6;">
+        <div style="margin-bottom: 10px;">
+          <strong style="color: #ffb84d;">🎯 Eliminate Drift:</strong><br/>
+          <span style="color: #aaa;">If the image appears to slowly rotate while animating, your speed is slightly off. Adjust rotation speed in increments of 1°/s until the center stays perfectly still.</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <strong style="color: #4a9eff;">🎬 Increase FPS for Fluidity:</strong><br/>
+          <span style="color: #aaa;">Higher frequencies (50-60 Hz) reduce choppiness, making the animation feel more like a modern movie and less like a strobe light.</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <strong style="color: #51cf66;">🎨 High-Contrast Graphics:</strong><br/>
+          <span style="color: #aaa;">The flicker works best with sharp contrast between subject and background. Use images with clear, high-contrast frames for optimal results.</span>
+        </div>
+        <div style="margin-bottom: 0;">
+          <strong style="color: #845ef7;">💡 Optimal Lighting:</strong><br/>
+          <span style="color: #aaa;">In bright rooms, the "dark" flicker phase may not feel dark enough. Dim your room lights to make the flicker effect feel stronger and clearer.</span>
+        </div>
+      </div>
+    </details>
   {/if}
 </div>
 
+<style>
+  .flicker-preset-btn {
+    padding: 6px 12px;
+    font-size: 0.85em;
+  }
+  
+  /* Mobile optimizations for better touch interaction */
+  @media (max-width: 768px) {
+    .flicker-preset-btn {
+      min-height: 48px;
+      padding: 12px 18px;
+      font-size: 1em;
+    }
+  }
+</style>

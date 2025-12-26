@@ -408,8 +408,24 @@
 		if (!dragging) return;
 		const dx = e.clientX - dragStart.x;
 		const dy = e.clientY - dragStart.y;
-		overlayPos.left = Math.round(startPos.left + dx);
+		// On mobile, only allow vertical movement
+		if (!$isMobile) {
+			overlayPos.left = Math.round(startPos.left + dx);
+		}
 		overlayPos.top = Math.round(startPos.top + dy);
+		
+		// Clamp to viewport bounds
+		const elH = 160; // Approximate overlay height on mobile
+		const minTop = 8;
+		const maxTop = Math.max(minTop, window.innerHeight - elH - 8);
+		overlayPos.top = Math.min(Math.max(overlayPos.top, minTop), maxTop);
+		
+		if (!$isMobile) {
+			const elW = 200;
+			const minLeft = 8;
+			const maxLeft = Math.max(minLeft, window.innerWidth - elW - 8);
+			overlayPos.left = Math.min(Math.max(overlayPos.left, minLeft), maxLeft);
+		}
 	}
 
 	function onOverlayPointerUp(e) {
@@ -614,49 +630,49 @@
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(30)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 30 ? '#c92a2a' : '#555'}; background: {$flickerFrequency === 30 ? '#c92a2a' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 30 ? '#c92a2a' : '#555'}; background: {$flickerFrequency === 30 ? '#c92a2a' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						30 Hz
 					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(42)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 42 ? '#ff6b6b' : '#555'}; background: {$flickerFrequency === 42 ? '#ff6b6b' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						42 Hz
 					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(50)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 50 ? '#ffa500' : '#555'}; background: {$flickerFrequency === 50 ? '#ffa500' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						50 Hz
 					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(55)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 55 ? '#4a9eff' : '#555'}; background: {$flickerFrequency === 55 ? '#4a9eff' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						55 Hz
 					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(60)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 60 ? '#51cf66' : '#555'}; background: {$flickerFrequency === 60 ? '#51cf66' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						60 Hz
 					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(70)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 70 ? '#845ef7' : '#555'}; background: {$flickerFrequency === 70 ? '#845ef7' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						70 Hz
 					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(80)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 80 ? '#20c997' : '#555'}; background: {$flickerFrequency === 80 ? '#20c997' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 80 ? '#20c997' : '#555'}; background: {$flickerFrequency === 80 ? '#20c997' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						80 Hz
 					</button>
 					<button 
 						class="flicker-preset-btn"
 						on:click={() => flickerFrequency.set(100)}
-						style="padding: 8px 14px; border: 1px solid {$flickerFrequency === 100 ? '#12b886' : '#555'}; background: {$flickerFrequency === 100 ? '#12b886' : '#333'}; color: white; border-radius: 6px; cursor: pointer; font-size: 0.9em; min-height: 40px;">
+						style="border: 1px solid {$flickerFrequency === 100 ? '#12b886' : '#555'}; background: {$flickerFrequency === 100 ? '#12b886' : '#333'}; color: white; border-radius: 6px; cursor: pointer;">
 						100 Hz
 					</button>
 				</div>
@@ -727,7 +743,7 @@
 		<div
 			class="speed-control {dragMode ? 'dragMode' : ''} {dragging ? 'dragging' : ''} {$isMobile ? 'mobile' : ''}"
 			on:pointerdown={onOverlayPointerDown}
-			style="left: {overlayPos.left ?? Math.round((window.innerWidth - 200) / 2)}px; top: {overlayPos.top ?? Math.round((window.innerHeight - 80) / 2)}px;"
+			style="{$isMobile ? `top: ${overlayPos.top ?? Math.round((window.innerHeight - 80) / 2)}px;` : `left: ${overlayPos.left ?? Math.round((window.innerWidth - 200) / 2)}px; top: ${overlayPos.top ?? Math.round((window.innerHeight - 80) / 2)}px;`}"
 		>
 			{#if dragMode || $isMobile}
 				<div class="drag-handle" title="Drag to move">⋮⋮</div>
@@ -829,10 +845,19 @@
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	}
 
+	/* Default styling for flicker preset buttons */
+	.flicker-preset-btn {
+		padding: 8px 14px;
+		font-size: 0.9em;
+		min-height: 40px;
+	}
+
 	/* Mobile optimizations */
 	@media (max-width: 768px) {
-		.speed-control {
-			/* On mobile, keep it centered and movable */
+		.speed-control.mobile {
+			/* On mobile, always center horizontally, allow vertical positioning */
+			left: 50% !important;
+			transform: translateX(-50%);
 			max-width: calc(100vw - 20px);
 			padding: 16px;
 		}
