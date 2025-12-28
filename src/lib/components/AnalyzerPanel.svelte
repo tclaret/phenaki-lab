@@ -511,7 +511,7 @@ rotationSpeed: degreesPerFrame * gifFps, // 360° rotation matching frame count
 			disabled={!$imageUrl}
 			>{$isPlaying ? 'Pause' : 'Play'}</button
 		>
-		<button on:click={reverseDir}>Reverse</button>
+		<button class:active={$rotationDirection === -1} on:click={reverseDir}>Reverse</button>
 		{#if $editMode}
 			<button class="confirm-btn" on:click={confirmDetection} disabled={busy}
 				>Confirm Detection</button
@@ -842,10 +842,15 @@ rotationSpeed: degreesPerFrame * gifFps, // 360° rotation matching frame count
 		color: #fff;
 		border-radius: 4px;
 		cursor: pointer;
+		transition: background 0.2s ease, box-shadow 0.2s ease;
 	}
 	button:disabled {
 		opacity: 0.5;
 		cursor: default;
+	}
+	button.active {
+		background: #ff6b35;
+		box-shadow: 0 0 8px rgba(255, 107, 53, 0.6);
 	}
 
 	/* Thumb-friendly speed control buttons (fixed overlay so it remains visible while zooming) */
