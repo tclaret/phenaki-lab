@@ -807,8 +807,20 @@ rotationSpeed: degreesPerFrame * gifFps, // 360° rotation matching frame count
 			</div>
 		</div>
 		<div><strong>Selected scenes count:</strong> {$gifFrameCount ?? 12}</div>
+		<div><strong>Detected objects:</strong> {_detectedCount || 0}</div>
 		<div><strong>Suggested speed:</strong> {_suggested ? _suggested.toFixed(0) : '—'}°/s</div>
+		<div><strong>Current speed:</strong> {Math.round($rotationSpeed)}°/s</div>
 		<div><strong>Reverse:</strong> {$rotationDirection === -1 ? 'true' : 'false'}</div>
+		<div><strong>Overlay visible:</strong> {_overlay ? 'true' : 'false'}</div>
+		<div><strong>Flicker effect:</strong> {$flickerEnabled ? `Enabled (${$flickerFrequency} Hz)` : 'Disabled'}</div>
+		{#if $fillOuterCircle}
+			<div><strong>Outer circle fill:</strong> {$outerCircleFillColor}</div>
+		{/if}
+		{#if $editMode}
+			<div><strong>Edit mode:</strong> Active</div>
+			<div><strong>Canvas transform:</strong> scale={$canvasTransform.scale.toFixed(2)}, x={Math.round($canvasTransform.translateX)}, y={Math.round($canvasTransform.translateY)}</div>
+			<div><strong>Slice rotation:</strong> {($sliceRotationAngle * 180 / Math.PI).toFixed(1)}°</div>
+		{/if}
 		{#if _detectedCircle}
 			<div>
 				<strong>Circle:</strong> x={Math.round(_detectedCircle.x)}, y={Math.round(

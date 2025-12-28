@@ -70,6 +70,9 @@ function CanvasPlayer($$renderer, $$props) {
     let lastTime = 0;
     let speedHudX = null;
     let speedHudY = null;
+    let showFlickerOverlay = false;
+    let flickerOverlayTimeout;
+    let lastFlickerFrequency = store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency);
     let htmlImg = null;
     let imageReady = false;
     function loadImage(url) {
@@ -89,6 +92,7 @@ function CanvasPlayer($$renderer, $$props) {
     }
     onDestroy(() => {
       if (raf) cancelAnimationFrame(raf);
+      if (flickerOverlayTimeout) clearTimeout(flickerOverlayTimeout);
       playerCanvas.set(null);
     });
     function loop(ts) {
@@ -424,34 +428,36 @@ function CanvasPlayer($$renderer, $$props) {
             ctx.fillRect(-cw, -ch, cw * 3, ch * 3);
           }
         }
-        ctx.save();
-        ctx.translate(cw / 2, ch / 2);
-        const badgeX = -cw / 2 + 15;
-        const badgeY = -ch / 2 + 15;
-        let badgeColor, label;
-        if (store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) < 50) {
-          badgeColor = "rgba(255, 100, 100, 0.9)";
-          label = "FLICKER";
-        } else if (store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) < 60) {
-          badgeColor = "rgba(255, 180, 50, 0.9)";
-          label = "THRESHOLD";
-        } else {
-          badgeColor = "rgba(100, 220, 100, 0.9)";
-          label = "FUSED";
+        if (showFlickerOverlay) {
+          ctx.save();
+          ctx.translate(cw / 2, ch / 2);
+          const badgeX = -cw / 2 + 15;
+          const badgeY = -ch / 2 + 15;
+          let badgeColor, label;
+          if (store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) < 50) {
+            badgeColor = "rgba(255, 100, 100, 0.9)";
+            label = "FLICKER";
+          } else if (store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) < 60) {
+            badgeColor = "rgba(255, 180, 50, 0.9)";
+            label = "THRESHOLD";
+          } else {
+            badgeColor = "rgba(100, 220, 100, 0.9)";
+            label = "FUSED";
+          }
+          ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+          ctx.beginPath();
+          ctx.roundRect(badgeX, badgeY, 85, 18, 4);
+          ctx.fill();
+          ctx.font = "bold 11px monospace";
+          ctx.fillStyle = badgeColor;
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`${store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency)}Hz`, badgeX + 5, badgeY + 9);
+          ctx.font = "9px sans-serif";
+          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+          ctx.fillText(label, badgeX + 42, badgeY + 9);
+          ctx.restore();
         }
-        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-        ctx.beginPath();
-        ctx.roundRect(badgeX, badgeY, 85, 18, 4);
-        ctx.fill();
-        ctx.font = "bold 11px monospace";
-        ctx.fillStyle = badgeColor;
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        ctx.fillText(`${store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency)}Hz`, badgeX + 5, badgeY + 9);
-        ctx.font = "9px sans-serif";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-        ctx.fillText(label, badgeX + 42, badgeY + 9);
-        ctx.restore();
       }
       ctx.restore();
       if (store_get($$store_subs ??= {}, "$editMode", editMode) || store_get($$store_subs ??= {}, "$confirmedDetection", confirmedDetection)) {
@@ -528,6 +534,31 @@ function CanvasPlayer($$renderer, $$props) {
     canvasTransform.set({ translateX, translateY, scale });
     if (store_get($$store_subs ??= {}, "$isPlaying", isPlaying)) {
       confirmedDetection.set(false);
+    }
+    if (store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled) && store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) !== lastFlickerFrequency) {
+      lastFlickerFrequency = store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency);
+      showFlickerOverlay = true;
+      clearTimeout(flickerOverlayTimeout);
+      flickerOverlayTimeout = setTimeout(
+        () => {
+          showFlickerOverlay = false;
+        },
+        1e3
+      );
+    }
+    if (store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled)) {
+      showFlickerOverlay = true;
+      clearTimeout(flickerOverlayTimeout);
+      flickerOverlayTimeout = setTimeout(
+        () => {
+          showFlickerOverlay = false;
+        },
+        1e3
+      );
+    }
+    if (!store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled)) {
+      showFlickerOverlay = false;
+      clearTimeout(flickerOverlayTimeout);
     }
     if (store_get($$store_subs ??= {}, "$imageUrl", imageUrl)) {
       loadImage(store_get($$store_subs ??= {}, "$imageUrl", imageUrl));
@@ -622,7 +653,7 @@ function CanvasPlayer($$renderer, $$props) {
         // Apply the overlay with a gradient effect
         // Create a subtle vignette effect for the overlay
         // Add a subtle color tint at lower frequencies for retro effect
-        // Frequency indicator (small, discrete badge)
+        // Frequency indicator (small, discrete badge) - only show temporarily
         // Position in top-left corner (visible when scrolling)
         // Determine color based on frequency
         // Red - strong flicker
@@ -655,6 +686,28 @@ function CanvasPlayer($$renderer, $$props) {
     if (store_get($$store_subs ??= {}, "$isMobile", isMobile)) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`<div class="speed-hud svelte-byh4af"${attr_style(store_get($$store_subs ??= {}, "$isMobile", isMobile) && speedHudX !== null ? `right: auto; top: auto; left: ${speedHudX}px; top: ${speedHudY}px;` : "")}>Speed: ${escape_html(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed).toFixed(0))}°/s</div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (showFlickerOverlay && store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled)) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="flicker-fusion-overlay svelte-byh4af"><div class="flicker-fusion-content svelte-byh4af">`);
+      if (store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) < 48) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<span class="flicker-icon svelte-byh4af">🔴</span> <span class="flicker-label svelte-byh4af">Visible Flicker</span> <span class="flicker-value svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} Hz</span>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+        if (store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency) < 58) {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<span class="flicker-icon svelte-byh4af">🟡</span> <span class="flicker-label svelte-byh4af">Fusion Zone</span> <span class="flicker-value svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} Hz</span>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+          $$renderer2.push(`<span class="flicker-icon svelte-byh4af">🟢</span> <span class="flicker-label svelte-byh4af">Smooth Motion</span> <span class="flicker-value svelte-byh4af">${escape_html(store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency))} Hz</span>`);
+        }
+        $$renderer2.push(`<!--]-->`);
+      }
+      $$renderer2.push(`<!--]--></div></div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -912,7 +965,21 @@ function AnalyzerPanel($$renderer, $$props) {
       $$renderer2.push("<!--[!-->");
       $$renderer2.push(`<em style="font-size:12px;opacity:0.7;" class="svelte-14nyow8">(Touch: drag up to speed up, down to slow down)</em>`);
     }
-    $$renderer2.push(`<!--]--></div> <div style="display:flex;gap:6px;align-items:center;" class="svelte-14nyow8"><label for="manual-speed-input" style="font-size:12px;" class="svelte-14nyow8">Type speed:</label> <input id="manual-speed-input" type="number" min="1" step="1"${attr("value", manualSpeed)} style="width:100px;padding:6px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <button class="svelte-14nyow8">Set</button></div></div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Selected scenes count:</strong> ${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) ?? 12)}</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Suggested speed:</strong> ${escape_html(_suggested ? _suggested.toFixed(0) : "—")}°/s</div> `);
+    $$renderer2.push(`<!--]--></div> <div style="display:flex;gap:6px;align-items:center;" class="svelte-14nyow8"><label for="manual-speed-input" style="font-size:12px;" class="svelte-14nyow8">Type speed:</label> <input id="manual-speed-input" type="number" min="1" step="1"${attr("value", manualSpeed)} style="width:100px;padding:6px;border-radius:4px;border:1px solid #ccc;" class="svelte-14nyow8"/> <button class="svelte-14nyow8">Set</button></div></div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Selected scenes count:</strong> ${escape_html(store_get($$store_subs ??= {}, "$gifFrameCount", gifFrameCount) ?? 12)}</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Detected objects:</strong> ${escape_html(_detectedCount || 0)}</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Suggested speed:</strong> ${escape_html(_suggested ? _suggested.toFixed(0) : "—")}°/s</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Current speed:</strong> ${escape_html(Math.round(store_get($$store_subs ??= {}, "$rotationSpeed", rotationSpeed)))}°/s</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Reverse:</strong> ${escape_html(store_get($$store_subs ??= {}, "$rotationDirection", rotationDirection) === -1 ? "true" : "false")}</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Overlay visible:</strong> ${escape_html(_overlay ? "true" : "false")}</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Flicker effect:</strong> ${escape_html(store_get($$store_subs ??= {}, "$flickerEnabled", flickerEnabled) ? `Enabled (${store_get($$store_subs ??= {}, "$flickerFrequency", flickerFrequency)} Hz)` : "Disabled")}</div> `);
+    if (store_get($$store_subs ??= {}, "$fillOuterCircle", fillOuterCircle)) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="svelte-14nyow8"><strong class="svelte-14nyow8">Outer circle fill:</strong> ${escape_html(store_get($$store_subs ??= {}, "$outerCircleFillColor", outerCircleFillColor))}</div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (store_get($$store_subs ??= {}, "$editMode", editMode)) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="svelte-14nyow8"><strong class="svelte-14nyow8">Edit mode:</strong> Active</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Canvas transform:</strong> scale=${escape_html(store_get($$store_subs ??= {}, "$canvasTransform", canvasTransform).scale.toFixed(2))}, x=${escape_html(Math.round(store_get($$store_subs ??= {}, "$canvasTransform", canvasTransform).translateX))}, y=${escape_html(Math.round(store_get($$store_subs ??= {}, "$canvasTransform", canvasTransform).translateY))}</div> <div class="svelte-14nyow8"><strong class="svelte-14nyow8">Slice rotation:</strong> ${escape_html((store_get($$store_subs ??= {}, "$sliceRotationAngle", sliceRotationAngle) * 180 / Math.PI).toFixed(1))}°</div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
     if (_detectedCircle) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`<div class="svelte-14nyow8"><strong class="svelte-14nyow8">Circle:</strong> x=${escape_html(Math.round(_detectedCircle.x))}, y=${escape_html(Math.round(_detectedCircle.y))}, r=${escape_html(Math.round(_detectedCircle.r))}</div>`);

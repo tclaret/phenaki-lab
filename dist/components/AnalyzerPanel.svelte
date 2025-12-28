@@ -301,32 +301,39 @@
 			const rotationSpeedValue = Number(get(rotationSpeed) || 0); // deg/sec
 			const directionValue = Number(get(rotationDirection) || 1);
 			
-			// For GIF export, we want a complete 360° rotation divided by frame count
-			// This ensures smooth looping regardless of playback speed
-			const degreesPerFrame = 360 / count;
-			
-			// Get the user-defined slice rotation angle for proper alignment
-			const userRotationAngle = get(sliceRotationAngle) || 0; // in radians
-			
-			// Get fill outer circle options
-			const shouldFillOuter = get(fillOuterCircle);
-			const fillColor = get(outerCircleFillColor);
-			
-			const frames = sliceDisk(canvas, count, {
-				circle,
-				// Don't pass outputSize - let sliceDisk calculate it from circle + margin
-				margin: 1.1, // Small margin - detected circle is already the correct outer edge
-				zoom: 1,
-				fps: gifFps,
-				rotationSpeed: degreesPerFrame * gifFps, // Convert to deg/sec for sliceDisk
-				direction: directionValue,
-				initialRotation: userRotationAngle, // Apply user's rotation adjustment
-				fillOuterCircle: shouldFillOuter,
-				fillColor: fillColor
-			});
+// For smooth looping GIF, always do exactly 360° divided evenly across frames
+	// This ensures the GIF loops perfectly without any jump
+	const degreesPerFrame = 360 / count;
+	
+	// Calculate the effective FPS needed to match the user's adjusted rotation speed
+	// rotationSpeed (deg/sec) = degreesPerFrame (deg/frame) * effectiveFPS (frame/sec)
+	const effectiveFPS = Math.abs(rotationSpeedValue / degreesPerFrame);
+	
+	// Use the effective FPS for export to match visual speed while maintaining perfect loop
+	const gifFpsAdjusted = effectiveFPS > 0 ? effectiveFPS : gifFps;
+		
+		// Get the user-defined slice rotation angle for proper alignment
+		const userRotationAngle = get(sliceRotationAngle) || 0; // in radians
+		
+		// Get fill outer circle options
+		const shouldFillOuter = get(fillOuterCircle);
+		const fillColor = get(outerCircleFillColor);
+		
+		const frames = sliceDisk(canvas, count, {
+			circle,
+			// Don't pass outputSize - let sliceDisk calculate it from circle + margin
+			margin: 1.1, // Small margin - detected circle is already the correct outer edge
+			zoom: 1,
+			fps: gifFps,
+rotationSpeed: degreesPerFrame * gifFps, // 360° rotation matching frame count
+		direction: directionValue,
+		initialRotation: userRotationAngle,
+		fillOuterCircle: shouldFillOuter,
+		fillColor: fillColor
+	});
 
-			// Export with selected FPS for smooth animation
-			const urlGif = await exportGif(frames, gifFps);
+			// Export with adjusted FPS to match user's visual speed
+			const urlGif = await exportGif(frames, gifFpsAdjusted);
 			const a = document.createElement('a');
 			a.href = urlGif;
 			// Nom de fichier avec timestamp et source
@@ -800,7 +807,20 @@
 			</div>
 		</div>
 		<div><strong>Selected scenes count:</strong> {$gifFrameCount ?? 12}</div>
+		<div><strong>Detected objects:</strong> {_detectedCount || 0}</div>
 		<div><strong>Suggested speed:</strong> {_suggested ? _suggested.toFixed(0) : '—'}°/s</div>
+		<div><strong>Current speed:</strong> {Math.round($rotationSpeed)}°/s</div>
+		<div><strong>Reverse:</strong> {$rotationDirection === -1 ? 'true' : 'false'}</div>
+		<div><strong>Overlay visible:</strong> {_overlay ? 'true' : 'false'}</div>
+		<div><strong>Flicker effect:</strong> {$flickerEnabled ? `Enabled (${$flickerFrequency} Hz)` : 'Disabled'}</div>
+		{#if $fillOuterCircle}
+			<div><strong>Outer circle fill:</strong> {$outerCircleFillColor}</div>
+		{/if}
+		{#if $editMode}
+			<div><strong>Edit mode:</strong> Active</div>
+			<div><strong>Canvas transform:</strong> scale={$canvasTransform.scale.toFixed(2)}, x={Math.round($canvasTransform.translateX)}, y={Math.round($canvasTransform.translateY)}</div>
+			<div><strong>Slice rotation:</strong> {($sliceRotationAngle * 180 / Math.PI).toFixed(1)}°</div>
+		{/if}
 		{#if _detectedCircle}
 			<div>
 				<strong>Circle:</strong> x={Math.round(_detectedCircle.x)}, y={Math.round(

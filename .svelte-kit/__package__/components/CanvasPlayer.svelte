@@ -87,6 +87,36 @@
 	let speedHudDragging = false;
 	let speedHudStartX = 0;
 	let speedHudStartY = 0;
+	
+	// Flicker fusion overlay (temporary display)
+	let showFlickerOverlay = false;
+	let flickerOverlayTimeout;
+	let lastFlickerFrequency = $flickerFrequency;
+	
+	// Show flicker overlay when frequency changes or when first enabled
+	$: if ($flickerEnabled && $flickerFrequency !== lastFlickerFrequency) {
+		lastFlickerFrequency = $flickerFrequency;
+		showFlickerOverlay = true;
+		clearTimeout(flickerOverlayTimeout);
+		flickerOverlayTimeout = setTimeout(() => {
+			showFlickerOverlay = false;
+		}, 1000);
+	}
+	
+	// Show overlay when flicker is first enabled
+	$: if ($flickerEnabled) {
+		showFlickerOverlay = true;
+		clearTimeout(flickerOverlayTimeout);
+		flickerOverlayTimeout = setTimeout(() => {
+			showFlickerOverlay = false;
+		}, 1000);
+	}
+	
+	// Hide overlay when flicker is disabled
+	$: if (!$flickerEnabled) {
+		showFlickerOverlay = false;
+		clearTimeout(flickerOverlayTimeout);
+	}
 
 	let htmlImg = null;
 	let imageReady = false;
@@ -487,6 +517,7 @@
 		if (raf) cancelAnimationFrame(raf);
 		if (ro) ro.disconnect();
 		if (hudTimeout) clearTimeout(hudTimeout);
+		if (flickerOverlayTimeout) clearTimeout(flickerOverlayTimeout);
 		if (wrapper) {
 			wrapper.removeEventListener('pointerdown', onPointerDown);
 			wrapper.removeEventListener('pointermove', onPointerMove);
@@ -964,46 +995,48 @@
 				}
 			}
 			
-			// Frequency indicator (small, discrete badge)
-			ctx.save();
-			ctx.translate(cw / 2, ch / 2);
-			
-			// Position in top-left corner (visible when scrolling)
-			const badgeX = -cw / 2 + 15;
-			const badgeY = -ch / 2 + 15;
-			
-			// Determine color based on frequency
-			let badgeColor, label;
-			if ($flickerFrequency < 50) {
-				badgeColor = 'rgba(255, 100, 100, 0.9)'; // Red - strong flicker
-				label = 'FLICKER';
-			} else if ($flickerFrequency < 60) {
-				badgeColor = 'rgba(255, 180, 50, 0.9)'; // Orange - threshold
-				label = 'THRESHOLD';
-			} else {
-				badgeColor = 'rgba(100, 220, 100, 0.9)'; // Green - fused
-				label = 'FUSED';
+			// Frequency indicator (small, discrete badge) - only show temporarily
+			if (showFlickerOverlay) {
+				ctx.save();
+				ctx.translate(cw / 2, ch / 2);
+				
+				// Position in top-left corner (visible when scrolling)
+				const badgeX = -cw / 2 + 15;
+				const badgeY = -ch / 2 + 15;
+				
+				// Determine color based on frequency
+				let badgeColor, label;
+				if ($flickerFrequency < 50) {
+					badgeColor = 'rgba(255, 100, 100, 0.9)'; // Red - strong flicker
+					label = 'FLICKER';
+				} else if ($flickerFrequency < 60) {
+					badgeColor = 'rgba(255, 180, 50, 0.9)'; // Orange - threshold
+					label = 'THRESHOLD';
+				} else {
+					badgeColor = 'rgba(100, 220, 100, 0.9)'; // Green - fused
+					label = 'FUSED';
+				}
+				
+				// Background badge
+				ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+				ctx.beginPath();
+				ctx.roundRect(badgeX, badgeY, 85, 18, 4);
+				ctx.fill();
+				
+				// Frequency text
+				ctx.font = 'bold 11px monospace';
+				ctx.fillStyle = badgeColor;
+				ctx.textAlign = 'left';
+				ctx.textBaseline = 'middle';
+				ctx.fillText(`${$flickerFrequency}Hz`, badgeX + 5, badgeY + 9);
+				
+				// Status label
+				ctx.font = '9px sans-serif';
+				ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+				ctx.fillText(label, badgeX + 42, badgeY + 9);
+				
+				ctx.restore();
 			}
-			
-			// Background badge
-			ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-			ctx.beginPath();
-			ctx.roundRect(badgeX, badgeY, 85, 18, 4);
-			ctx.fill();
-			
-			// Frequency text
-			ctx.font = 'bold 11px monospace';
-			ctx.fillStyle = badgeColor;
-			ctx.textAlign = 'left';
-			ctx.textBaseline = 'middle';
-			ctx.fillText(`${$flickerFrequency}Hz`, badgeX + 5, badgeY + 9);
-			
-			// Status label
-			ctx.font = '9px sans-serif';
-			ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-			ctx.fillText(label, badgeX + 42, badgeY + 9);
-			
-			ctx.restore();
 		}
 
 		ctx.restore();
@@ -1117,6 +1150,27 @@
 			Speed: {$rotationSpeed.toFixed(0)}°/s
 		</div>
 	{/if}
+	
+	{#if showFlickerOverlay && $flickerEnabled}
+		<div class="flicker-fusion-overlay">
+			<div class="flicker-fusion-content">
+				{#if $flickerFrequency < 48}
+					<span class="flicker-icon">🔴</span>
+					<span class="flicker-label">Visible Flicker</span>
+					<span class="flicker-value">{$flickerFrequency} Hz</span>
+				{:else if $flickerFrequency < 58}
+					<span class="flicker-icon">🟡</span>
+					<span class="flicker-label">Fusion Zone</span>
+					<span class="flicker-value">{$flickerFrequency} Hz</span>
+				{:else}
+					<span class="flicker-icon">🟢</span>
+					<span class="flicker-label">Smooth Motion</span>
+					<span class="flicker-value">{$flickerFrequency} Hz</span>
+				{/if}
+			</div>
+		</div>
+	{/if}
+	
 	{#if $editMode}
 		<div class="edit-mode-indicator">
 			{#if $editModeInteraction === 'move-center'}
@@ -1232,6 +1286,55 @@
 		user-select: none;
 	}
 	
+	.flicker-fusion-overlay {
+		position: absolute;
+		left: 8px;
+		top: 8px;
+		background: rgba(0, 0, 0, 0.85);
+		backdrop-filter: blur(8px);
+		color: #fff;
+		padding: 12px 16px;
+		border-radius: 8px;
+		font-size: 16px;
+		font-weight: 600;
+		pointer-events: none;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+		z-index: 10;
+		animation: flickerFadeIn 0.2s ease-out;
+	}
+	
+	.flicker-fusion-content {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	
+	.flicker-icon {
+		font-size: 20px;
+	}
+	
+	.flicker-label {
+		font-weight: 600;
+		color: #fff;
+	}
+	
+	.flicker-value {
+		color: #4a9eff;
+		font-weight: 700;
+		margin-left: 4px;
+	}
+	
+	@keyframes flickerFadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	
 	/* Mobile responsive adjustments */
 	@media (max-width: 600px) {
 		.speed-hud {
@@ -1241,6 +1344,21 @@
 			top: 4px;
 			max-width: 120px;
 			opacity: 0.8;
+		}
+		
+		.flicker-fusion-overlay {
+			font-size: 12px;
+			padding: 8px 12px;
+			left: 4px;
+			top: 4px;
+		}
+		
+		.flicker-icon {
+			font-size: 16px;
+		}
+		
+		.flicker-fusion-content {
+			gap: 6px;
 		}
 	}
 	

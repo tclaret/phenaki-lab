@@ -151,6 +151,31 @@
         {/if}
       </div>
     </div>
+
+    <!-- Pro Tips Section -->
+    <details style="margin-top: 15px; padding: 10px; background: rgba(255, 200, 100, 0.05); border-left: 3px solid #ffb84d; border-radius: 4px;">
+      <summary style="cursor: pointer; font-weight: 600; color: #ffb84d; font-size: 0.9em; user-select: none;">
+        💡 Pro Tips for Best Results
+      </summary>
+      <div style="margin-top: 10px; font-size: 0.85em; color: #ccc; line-height: 1.6;">
+        <div style="margin-bottom: 10px;">
+          <strong style="color: #ffb84d;">🎯 Eliminate Drift:</strong><br/>
+          <span style="color: #aaa;">If the image appears to slowly rotate while animating, your speed is slightly off. Adjust rotation speed in increments of 1°/s until the center stays perfectly still.</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <strong style="color: #4a9eff;">🎬 Increase FPS for Fluidity:</strong><br/>
+          <span style="color: #aaa;">Higher frequencies (50-60 Hz) reduce choppiness, making the animation feel more like a modern movie and less like a strobe light.</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <strong style="color: #51cf66;">🎨 High-Contrast Graphics:</strong><br/>
+          <span style="color: #aaa;">The flicker works best with sharp contrast between subject and background. Use images with clear, high-contrast frames for optimal results.</span>
+        </div>
+        <div style="margin-bottom: 0;">
+          <strong style="color: #845ef7;">💡 Optimal Lighting:</strong><br/>
+          <span style="color: #aaa;">In bright rooms, the "dark" flicker phase may not feel dark enough. Dim your room lights to make the flicker effect feel stronger and clearer.</span>
+        </div>
+      </div>
+    </details>
   {/if}
 </div>
 
