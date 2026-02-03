@@ -25,6 +25,11 @@
 	const GITHUB_RAW_URL_NEW = 'https://raw.githubusercontent.com/tclaret/phenaki-lab/main/img';
 
 	const samples = [
+		{ name: 'Etsy EFOG', file: 'il_1588xN.1972378642_efog.avif', repo: 'new' },
+		{ name: 'Etsy EFOG (1)', file: 'il_1588xN.1972378642_efog (1).avif', repo: 'new' },
+		{ name: 'Etsy GCFC', file: 'il_1588xN.2019925483_gcfc.jpg', repo: 'new' },
+		{ name: 'Etsy 4TNW', file: 'il_1588xN.7127245108_4tnw.png', repo: 'new' },
+		{ name: 'Etsy BS1I', file: 'il_1588xN.7287092618_bs1i.png', repo: 'new' },
 		{ name: 'Colors', file: 'colors.png', repo: 'new' },
 		{ name: 'Medium 1990', file: 'medium_1990_5036_7181_6_1.png', repo: 'new' },
 		{ name: 'Cats et Donkey', file: 'optical-toy-phenakistiscope-disc-avec-cats-et-donkey-ca-1830-2efx315.jpg', repo: 'new' },
